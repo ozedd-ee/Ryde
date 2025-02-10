@@ -3,6 +3,7 @@ package data
 import (
 	"context"
 	"errors"
+	"ryde/internal/models"
 	"time"
 
 	"github.com/redis/go-redis/v9"
@@ -20,8 +21,8 @@ func NewDataStore(redisClient *redis.Client) *DataStore {
 
 func (s *DataStore) UpdateDriverLocation(ctx context.Context, driverID string, lat, lon float64) error {
 	_, err := s.RedisClient.GeoAdd(ctx, "drivers:location", &redis.GeoLocation{
-		Name: driverID,
-		Latitude: lat,
+		Name:      driverID,
+		Latitude:  lat,
 		Longitude: lon,
 	}).Result()
 	if err != nil {
@@ -35,9 +36,9 @@ func (s *DataStore) UpdateDriverLocation(ctx context.Context, driverID string, l
 func (s *DataStore) FindNearbyDrivers(ctx context.Context, lat, lon, radius float64) ([]string, error) {
 	drivers, err := s.RedisClient.GeoRadius(ctx, "drivers:location", lon, lat, &redis.GeoRadiusQuery{
 		Radius: radius,
-		Unit: "km",
-		Sort: "ASC", // Closest first 
-		Count: 10, // Limit result to 10 closest drivers
+		Unit:   "km",
+		Sort:   "ASC", // Closest first
+		Count:  10,    // Limit result to 10 closest drivers
 	}).Result()
 
 	if err != nil {
@@ -52,16 +53,22 @@ func (s *DataStore) FindNearbyDrivers(ctx context.Context, lat, lon, radius floa
 }
 
 // For determining drop-off location at end of ride
-func (s *DataStore) GetDriverLocation(ctx context.Context, driverID string) (float64, float64, error) {
-	position, err := s.RedisClient.GeoPos(ctx, "drivers:location",driverID).Result()
+func (s *DataStore) GetDriverLocation(ctx context.Context, driverID string) (*models.Location, error) {
+	var location models.Location
+
+	position, err := s.RedisClient.GeoPos(ctx, "drivers:location", driverID).Result()
 	if err != nil {
-		return 0, 0, err
+		return nil, err
 	}
 
 	// Check if location exists
 	if len(position) == 0 || position[0] == nil {
-		return 0, 0, errors.New("driver location not found")
+		return nil, errors.New("driver location not found")
 	}
 
-	return position[0].Latitude, position[0].Longitude, nil
+	location.DriverID = driverID
+	location.Latitude = position[0].Latitude
+	location.Longitude = position[0].Longitude
+
+	return &location, nil
 }
