@@ -12,18 +12,18 @@ import (
 var jwtSecret = os.Getenv("USER_SECRET_KEY")
 
 type Claims struct {
-	UserID string `json:"_id"`
+	DriverID string `json:"_id"`
 	jwt.StandardClaims
 }
 
-func GenerateJWT(userID string) (string, error) {
+func GenerateJWT(driverID string) (string, error) {
 	if jwtSecret == "" {
 		log.Fatal("Secret key not set")
 	}
 	expirationTime := time.Now().Add(time.Hour * 24)
 
 	claims := &Claims{
-		UserID: userID,
+		DriverID: driverID,
 		StandardClaims: jwt.StandardClaims{
 			ExpiresAt: expirationTime.Unix(),
 		},
@@ -39,7 +39,7 @@ func ValidateJWT(tokenString string) (*Claims, error) {
 	}
 	claims := &Claims{}
 
-	token, err := jwt.ParseWithClaims(tokenString, claims, func (token *jwt.Token) (interface{}, error) {
+	token, err := jwt.ParseWithClaims(tokenString, claims, func(token *jwt.Token) (interface{}, error) {
 		return jwtSecret, nil
 	})
 	if err != nil || !token.Valid {
