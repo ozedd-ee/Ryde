@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"ryde/internal/models"
 
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
@@ -15,17 +16,13 @@ var upgrader = websocket.Upgrader{
 	},
 }
 
-type LocationUpdate struct {
-	DriverID  string  `json:"driver_id"`
-	Latitude  float64 `json:"latitude"`
-	Longitude float64 `json:"longitude"`
-}
+var UpdateChannel = make(chan models.Location, 10)
 
-func PollLocation(c gin.Context) *LocationUpdate {
+func PollLocation(c *gin.Context) {
 	conn, err := upgrader.Upgrade(c.Writer, c.Request, nil)
 	if err != nil {
 		fmt.Println("WebSocket upgrade error", err)
-		return nil
+		return
 	}
 	defer conn.Close()
 
@@ -36,11 +33,11 @@ func PollLocation(c gin.Context) *LocationUpdate {
 			break
 		}
 
-		var loc LocationUpdate
+		var loc models.Location
 		if err := json.Unmarshal(message, &loc); err != nil {
 			fmt.Println("JSON Parse error", err)
 			continue
 		}
-		return &loc
+		UpdateChannel <- loc
 	}
 }
