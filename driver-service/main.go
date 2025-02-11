@@ -28,7 +28,7 @@ func main() {
 	routes.DriverRoutes(router, driverController)
 
 	// start server
-	if err := router.Run(":8080"); err != nil {
+	if err := router.Run(":8081"); err != nil {
 		log.Fatal("Failed to start server:", err)
 	}
 }
