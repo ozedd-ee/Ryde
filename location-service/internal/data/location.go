@@ -9,17 +9,17 @@ import (
 	"github.com/redis/go-redis/v9"
 )
 
-type DataStore struct {
+type LocationStore struct {
 	RedisClient *redis.Client
 }
 
-func NewDataStore(redisClient *redis.Client) *DataStore {
-	return &DataStore{
+func NewLocationStore(redisClient *redis.Client) *LocationStore {
+	return &LocationStore{
 		RedisClient: redisClient,
 	}
 }
 
-func (s *DataStore) UpdateDriverLocation(ctx context.Context, driverID string, lat, lon float64) error {
+func (s *LocationStore) UpdateDriverLocation(ctx context.Context, driverID string, lat, lon float64) error {
 	_, err := s.RedisClient.GeoAdd(ctx, "drivers:location", &redis.GeoLocation{
 		Name:      driverID,
 		Latitude:  lat,
@@ -33,7 +33,7 @@ func (s *DataStore) UpdateDriverLocation(ctx context.Context, driverID string, l
 	return nil
 }
 
-func (s *DataStore) FindNearbyDrivers(ctx context.Context, lat, lon, radius float64) ([]string, error) {
+func (s *LocationStore) FindNearbyDrivers(ctx context.Context, lat, lon, radius float64) ([]string, error) {
 	drivers, err := s.RedisClient.GeoRadius(ctx, "drivers:location", lon, lat, &redis.GeoRadiusQuery{
 		Radius: radius,
 		Unit:   "km",
@@ -53,7 +53,7 @@ func (s *DataStore) FindNearbyDrivers(ctx context.Context, lat, lon, radius floa
 }
 
 // For determining drop-off location at end of ride
-func (s *DataStore) GetDriverLocation(ctx context.Context, driverID string) (*models.Location, error) {
+func (s *LocationStore) GetDriverLocation(ctx context.Context, driverID string) (*models.Location, error) {
 	var location models.Location
 
 	position, err := s.RedisClient.GeoPos(ctx, "drivers:location", driverID).Result()
