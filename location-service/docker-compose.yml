@@ -1,0 +1,15 @@
+services:
+  redis:
+    container_name: redis-location
+    image: redis:latest
+    restart: always
+    ports:
+      - "6379:6379"
+      
+  ryde:
+    build: .
+    container_name: ryde-location
+    ports:
+      - "8083:8083"
+    depends_on:
+      - redis
