@@ -26,7 +26,7 @@ func (s *NotificationService) UpdateFCMToken(ctx context.Context, ownerID, token
 	return s.TokenStore.UpdateFCMToken(ctx, ownerID, token)
 }
 
-func (s *NotificationService) NotifyDriver(ctx context.Context, driverID string, request models.Order) (string, error) {
+func (s *NotificationService) NotifyDriver(ctx context.Context, driverID string, order models.Order) (string, error) {
 	fcmServerKey := os.Getenv("TEST_FCM_SERVER_KEY")
 
 	driverFcmToken, err := s.TokenStore.GetFCMToken(ctx, driverID)
@@ -35,7 +35,7 @@ func (s *NotificationService) NotifyDriver(ctx context.Context, driverID string,
 	}
 	notification := models.FCMRequest{
 		To:   driverFcmToken,
-		Data: request,
+		Data: order,
 	}
 	requestBody, err := json.Marshal(notification)
 	if err != nil {
