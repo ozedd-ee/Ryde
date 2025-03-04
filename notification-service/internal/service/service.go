@@ -9,7 +9,7 @@ import (
 	"net/http"
 	"os"
 	"ryde/internal/data"
-	"ryde/models"
+	"ryde/internal/models"
 )
 
 type NotificationService struct {

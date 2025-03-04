@@ -3,6 +3,7 @@ package controller
 import (
 	"net/http"
 	"ryde/internal/service"
+	"ryde/internal/models"
 	"ryde/utils"
 
 	"github.com/gin-gonic/gin"
@@ -36,5 +37,20 @@ func (s *NotificationController) UpdateFCMToken(c *gin.Context) {
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 	}
-	c.Writer.WriteHeader(http.StatusOK)
+	c.Status(http.StatusOK)
+}
+
+func (s *NotificationController) NotifyDriver(c *gin.Context) {
+	var requestPayload struct {
+		driverID string
+		order    models.Order
+	}
+	if err := c.ShouldBindJSON(&requestPayload); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid request"})
+	}
+	status, err := s.NotificationService.NotifyDriver(c.Request.Context(), requestPayload.driverID, requestPayload.order)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+	}
+	c.String(http.StatusOK, "UTF-8", status)
 }
