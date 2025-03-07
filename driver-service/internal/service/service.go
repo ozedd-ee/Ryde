@@ -5,7 +5,7 @@ import (
 	"errors"
 	"ryde/internal/data"
 	"ryde/internal/models"
-	"ryde/internal/utils"
+	"ryde/utils"
 
 	"go.mongodb.org/mongo-driver/mongo"
 )
