@@ -2,9 +2,7 @@ package main
 
 import (
 	"log"
-	"ryde/cache"
 	"ryde/internal/controller"
-	"ryde/internal/data"
 	"ryde/internal/routes"
 	"ryde/internal/service"
 
@@ -12,15 +10,12 @@ import (
 )
 
 func main() {
+	mqttBroker := "tcp://localhost:1883"
 	// Initialize router
 	router := gin.Default()
 
-	// Initialize Redis client
-	cache := cache.Init()
-
-	// Initialize all three layers
-	tokenStore := data.NewTokenStore(cache)
-	notificationService := service.NewNotificationService(tokenStore)
+	// Initialize both layers
+	notificationService := service.NewNotificationService(mqttBroker)
 	notificationController := controller.NewNotificationController(notificationService)
 
 	// Define and group routes

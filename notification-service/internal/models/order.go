@@ -10,3 +10,8 @@ type Order struct {
 	Destination Location `json:"destination"`
 	Status      string   `json:"status"` // can be pending, accepted or rejected
 }
+
+type RideRequest struct {
+	DriverID string `json:"driver_id"`
+	Order    Order  `json:"order"`
+}

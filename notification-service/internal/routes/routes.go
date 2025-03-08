@@ -11,6 +11,6 @@ func NotificationRoutes(router *gin.Engine, controller *controller.NotificationC
 	//group notification routes under /notifications path
 	notificationGroup := router.Group("/api/v1/notifications")
 
-	// notifications/update-fcm-token
-	notificationGroup.POST("/update-fcm-token", controller.UpdateFCMToken)
+	// notifications/send-ride-request
+	notificationGroup.POST("/send-ride-request", controller.SendRideRequest)
 }

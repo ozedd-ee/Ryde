@@ -1,69 +1,72 @@
 package service
 
 import (
-	"bytes"
-	"context"
 	"encoding/json"
 	"fmt"
-	"io"
-	"net/http"
-	"os"
-	"ryde/internal/data"
+	"log"
 	"ryde/internal/models"
+	"time"
+
+	mqtt "github.com/eclipse/paho.mqtt.golang"
+)
+
+const (
+	clientID = "ryde-notification-service"
+	qos      = 1
 )
 
 type NotificationService struct {
-	TokenStore *data.TokenStore
+	mqttClient mqtt.Client
 }
 
-func NewNotificationService(tokenStore *data.TokenStore) *NotificationService {
+func NewNotificationService(mqttBroker string) *NotificationService {
+	options := mqtt.NewClientOptions()
+	options.AddBroker(mqttBroker)
+	options.SetClientID(clientID)
+
+	mqttClient := mqtt.NewClient(options)
+	if token := mqttClient.Connect(); token.Wait() && token.Error() != nil {
+		log.Fatalf("MQTT connection error: %v", token.Error())
+	}
 	return &NotificationService{
-		TokenStore: tokenStore,
+		mqttClient: mqttClient,
 	}
 }
 
-func (s *NotificationService) UpdateFCMToken(ctx context.Context, ownerID, token string) error {
-	return s.TokenStore.UpdateFCMToken(ctx, ownerID, token)
+// Publish trip request to driver
+func (s *NotificationService) SendRideRequest(driverID string, order models.Order) (string, error) {
+	topic := fmt.Sprintf("ride/request/%s", driverID)
+	payload, err := json.Marshal(order)
+	if err != nil {
+		return "", err
+	}
+	token := s.mqttClient.Publish(topic, qos, false, payload)
+	token.Wait()
+	// Wait for and return driver's response
+	return s.subscribeToDriverResponse(driverID), nil
+
 }
 
-func (s *NotificationService) NotifyDriver(ctx context.Context, driverID string, order models.Order) (string, error) {
-	fcmServerKey := os.Getenv("TEST_FCM_SERVER_KEY")
+func (s *NotificationService) subscribeToDriverResponse(driverID string) string {
+	topic := fmt.Sprintf("ride/response/%s", driverID)
+	var response string
+	// Subscribe to driver's response topic and wait 10 seconds for a confirmation or decline
+	s.mqttClient.Subscribe(topic, qos, func(client mqtt.Client, msg mqtt.Message) {
+		for {
+			select {
+			// stop waiting for response after 10 seconds
+			case <-time.After(10 * time.Second):
+				return
+			default:
+				var responsePayload map[string]string
+				json.Unmarshal(msg.Payload(), &responsePayload)
 
-	driverFcmToken, err := s.TokenStore.GetFCMToken(ctx, driverID)
-	if err != nil {
-		return "", err
-	}
-	notification := models.FCMRequest{
-		To:   driverFcmToken,
-		Data: order,
-	}
-	requestBody, err := json.Marshal(notification)
-	if err != nil {
-		return "", err
-	}
+				if responsePayload["Status"] == "accepted" {
+					response = "accepted"
+				}
+			}
+		}
 
-	req, err := http.NewRequestWithContext(ctx, "POST", "https://fcm.googleapis.com/fcm/send", bytes.NewBuffer(requestBody))
-	if err != nil {
-		return "", err
-	}
-
-	req.Header.Set("Authorization", "key="+fcmServerKey)
-	req.Header.Set("Content-Type", "application/json")
-
-	client := &http.Client{}
-	response, err := client.Do(req)
-	if err != nil {
-		return "", err
-	}
-	defer response.Body.Close()
-
-	body, err := io.ReadAll(response.Body)
-	if err != nil {
-		return "", fmt.Errorf("error reading response")
-	}
-	var resp models.Order
-	if err := json.Unmarshal(body, &resp); err != nil {
-		return "", fmt.Errorf("error decoding JSON")
-	}
-	return resp.Status, nil
+	})
+	return response
 }
