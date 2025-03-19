@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"ryde/internal/data"
 	"ryde/internal/models"
-	"ryde/internal/utils"
+	"ryde/utils"
 
 	"github.com/gin-gonic/gin"
 )
