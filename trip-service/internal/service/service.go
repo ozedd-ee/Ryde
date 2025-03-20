@@ -37,7 +37,6 @@ func (s *TripService) NewRideRequest(ctx context.Context, riderID string, reques
 			}
 			status := request.Order.Status
 			if status == "accepted" {
-				// Record trip in trip service and notify rider
 				trip, err := createTrip(riderID, request)
 				if err != nil {
 					return nil, err
@@ -49,4 +48,20 @@ func (s *TripService) NewRideRequest(ctx context.Context, riderID string, reques
 		}
 	}
 	return nil, errors.New("sorry, all nearby drivers are currently busy")
+}
+
+func (s *TripService) GetTripByID(ctx context.Context, tripID string) (*models.Trip, error) {
+	return s.TripStore.GetTripByID(ctx, tripID)
+}
+
+func (s *TripService) GetTripByDriver(ctx context.Context, driverID string) (*models.Trip, error) {
+	return s.TripStore.GetTripByDriver(ctx, driverID)
+}
+
+func (s *TripService) StartTrip(ctx context.Context, tripID string) (*models.Trip, error) {
+	return s.TripStore.StartTrip(ctx, tripID)
+}
+
+func (s *TripService) EndTrip(ctx context.Context, tripID string) (*models.Trip, error) {
+	return s.TripStore.EndTrip(ctx, tripID)
 }
