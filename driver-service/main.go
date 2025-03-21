@@ -2,6 +2,7 @@ package main
 
 import (
 	"log"
+	"ryde/cache"
 	"ryde/db"
 	"ryde/internal/controller"
 	"ryde/internal/data"
@@ -15,11 +16,12 @@ func main() {
 	// Initialize gin
 	router := gin.Default()
 	
-	// Initialize database
+	// Initialize database and cache
 	db := db.Init()
+	cache := cache.Init()
 
 	// Initialize all layers
-	driverStore := data.NewDriverStore(db)
+	driverStore := data.NewDriverStore(db, cache)
 	vehicleStore := data.NewVehicleStore(db)
 	driverService := service.NewDriverService(driverStore, vehicleStore)
 	driverController := controller.NewDriverController(driverService)

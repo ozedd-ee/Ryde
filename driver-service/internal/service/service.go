@@ -11,13 +11,13 @@ import (
 )
 
 type DriverService struct {
-	DriverStore *data.DriverStore
+	DriverStore  *data.DriverStore
 	VehicleStore *data.VehicleStore
 }
 
 func NewDriverService(driverStore *data.DriverStore, vehicleStore *data.VehicleStore) *DriverService {
 	return &DriverService{
-		DriverStore: driverStore,
+		DriverStore:  driverStore,
 		VehicleStore: vehicleStore,
 	}
 }
@@ -77,4 +77,16 @@ func (s *DriverService) GetVehicleDetails(ctx context.Context, driverID string) 
 		return nil, errors.New("no vehicle added")
 	}
 	return vehicle, nil
+}
+
+func (s *DriverService) SetStatusBusy(ctx context.Context, driverID string) error {
+	return s.DriverStore.SetStatusBusy(ctx, driverID)
+}
+
+func (s *DriverService) SetStatusAvailable(ctx context.Context, driverID string) error {
+	return s.DriverStore.SetStatusAvailable(ctx, driverID)
+}
+
+func (s *DriverService) SetStatusOffline(ctx context.Context, driverID string) error {
+	return s.DriverStore.SetStatusOffline(ctx, driverID)
 }

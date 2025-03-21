@@ -4,19 +4,23 @@ import (
 	"context"
 	"errors"
 	"ryde/internal/models"
+	"time"
 
+	"github.com/redis/go-redis/v9"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
 type DriverStore struct {
-	DriverStore *mongo.Collection
+	DriverStore       *mongo.Collection
+	DriverStatusCache *redis.Client
 }
 
-func NewDriverStore(db *mongo.Database) *DriverStore {
+func NewDriverStore(db *mongo.Database, cache *redis.Client) *DriverStore {
 	return &DriverStore{
-		DriverStore: db.Collection("drivers"),
+		DriverStore:       db.Collection("drivers"),
+		DriverStatusCache: cache,
 	}
 }
 
@@ -51,4 +55,25 @@ func (s *DriverStore) GetDriverByEmail(ctx context.Context, email string) (*mode
 		return nil, err
 	}
 	return &driver, nil
+}
+
+func (s *DriverStore) SetStatusBusy(ctx context.Context, driverID string) error {
+	if _, err := s.DriverStatusCache.Set(ctx, driverID, "busy", 24 * time.Hour).Result(); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (s *DriverStore) SetStatusAvailable(ctx context.Context, driverID string) error {
+	if _, err := s.DriverStatusCache.Set(ctx, driverID, "available", 24 * time.Hour).Result(); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (s *DriverStore) SetStatusOffline(ctx context.Context, driverID string) error {
+	if _, err := s.DriverStatusCache.Set(ctx, driverID, "offline", 24 * time.Hour).Result(); err != nil {
+		return err
+	}
+	return nil
 }
