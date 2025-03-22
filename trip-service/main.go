@@ -3,6 +3,8 @@ package main
 import (
 	"log"
 	"net/http"
+
+	"ryde/cache"
 	"ryde/db"
 	"ryde/internal/controller"
 	"ryde/internal/data"
@@ -19,8 +21,10 @@ func main() {
 	// Initialize database
 	db := db.Init()
 
+	// Initialize cache
+	cache := cache.Init()
 	// Initialize all layers
-	tripStore := data.NewTripStore(db)
+	tripStore := data.NewTripStore(db, cache)
 	tripService := service.NewTripService(tripStore)
 	tripController := controller.NewTripController(tripService)
 

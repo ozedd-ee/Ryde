@@ -64,7 +64,7 @@ func (s *TripController) StartTrip(c *gin.Context) {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": errors.New("trip not assigned to driver")})
 	}
 
-	updatedTrip, err := s.TripService.StartTrip(c.Request.Context(), trip.ID.String())
+	updatedTrip, err := s.TripService.StartTrip(c.Request.Context(), trip.ID.String(), driverID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err})
 	}
@@ -87,7 +87,7 @@ func (s *TripController) EndTrip(c *gin.Context) {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": errors.New("trip not assigned to driver")})
 	}
 
-	updatedTrip, err := s.TripService.EndTrip(c.Request.Context(), trip.ID.String())
+	updatedTrip, err := s.TripService.EndTrip(c.Request.Context(), trip.ID.String(), driverID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err})
 	}

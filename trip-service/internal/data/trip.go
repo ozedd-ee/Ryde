@@ -2,10 +2,13 @@ package data
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
+	"fmt"
 	"ryde/internal/models"
 	"time"
 
+	"github.com/redis/go-redis/v9"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -14,11 +17,13 @@ import (
 
 type TripStore struct {
 	Collection *mongo.Collection
+	Cache     *redis.Client
 }
 
-func NewTripStore(db *mongo.Database) *TripStore {
+func NewTripStore(db *mongo.Database, cache *redis.Client) *TripStore {
 	return &TripStore{
 		Collection: db.Collection("trips"),
+		Cache: cache,
 	}
 }
 
@@ -57,7 +62,7 @@ func (s *TripStore) GetTripByDriver(ctx context.Context, driverID string) (*mode
 	return &trip, nil
 }
 
-func (s *TripStore) StartTrip(ctx context.Context, tripID string) (*models.Trip, error) {
+func (s *TripStore) StartTrip(ctx context.Context, tripID, driverID string) (*models.Trip, error) {
 	var updatedTrip models.Trip
 	id, err := primitive.ObjectIDFromHex(tripID)
 	if err != nil {
@@ -75,10 +80,24 @@ func (s *TripStore) StartTrip(ctx context.Context, tripID string) (*models.Trip,
 		}
 		return nil, err
 	}
+
+	// Publish driver status update for driver service
+	payload := models.StatusUpdate{
+		DriverID: driverID,
+		Status: "busy",
+	}
+	jsonPayload, err := json.Marshal(payload)
+	if err != nil {
+		fmt.Println("Error marshalling JSON:", err)
+	}
+	if err := s.Cache.Publish(ctx, "driver_status", jsonPayload).Err(); err != nil {
+		fmt.Println("Error publishing status update:", err)
+	}
+	
 	return &updatedTrip, nil
 }
 
-func (s *TripStore) EndTrip(ctx context.Context, tripID string) (*models.Trip, error) {
+func (s *TripStore) EndTrip(ctx context.Context, tripID, driverID string) (*models.Trip, error) {
 	var updatedTrip models.Trip
 	id, err := primitive.ObjectIDFromHex(tripID)
 	if err != nil {
@@ -96,5 +115,18 @@ func (s *TripStore) EndTrip(ctx context.Context, tripID string) (*models.Trip, e
 		}
 		return nil, err
 	}
+	// Publish driver status update for driver service
+	payload := models.StatusUpdate{
+		DriverID: driverID,
+		Status: "available",
+	}
+	jsonPayload, err := json.Marshal(payload)
+	if err != nil {
+		fmt.Println("Error marshalling JSON:", err)
+	}
+	if err := s.Cache.Publish(ctx, "driver_status", jsonPayload).Err(); err != nil {
+		fmt.Println("Error publishing status update:", err)
+	}
+
 	return &updatedTrip, nil
 }

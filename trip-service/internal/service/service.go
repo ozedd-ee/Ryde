@@ -58,10 +58,10 @@ func (s *TripService) GetTripByDriver(ctx context.Context, driverID string) (*mo
 	return s.TripStore.GetTripByDriver(ctx, driverID)
 }
 
-func (s *TripService) StartTrip(ctx context.Context, tripID string) (*models.Trip, error) {
-	return s.TripStore.StartTrip(ctx, tripID)
+func (s *TripService) StartTrip(ctx context.Context, tripID, driverID string) (*models.Trip, error) {
+	return s.TripStore.StartTrip(ctx, tripID, driverID)
 }
 
-func (s *TripService) EndTrip(ctx context.Context, tripID string) (*models.Trip, error) {
-	return s.TripStore.EndTrip(ctx, tripID)
+func (s *TripService) EndTrip(ctx context.Context, tripID, driverID string) (*models.Trip, error) {
+	return s.TripStore.EndTrip(ctx, tripID, driverID)
 }
