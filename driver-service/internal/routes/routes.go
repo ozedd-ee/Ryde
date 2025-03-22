@@ -19,12 +19,9 @@ func DriverRoutes(router *gin.Engine, controller *controller.DriverController) {
 	// Add vehicle: /drivers/:id/addvehicle
 	driverGroup.POST("/:id/addvehicle", controller.AddVehicle)
 
-	// Set driver status to 'busy'
-	driverGroup.POST("/set-status-busy", controller.SetStatusBusy)
-
 	// Set driver status to 'available'
 	driverGroup.POST("/set-status-available", controller.SetStatusAvailable)
-	
+
 	// Set driver status to 'offline'
 	driverGroup.POST("/set-status-offline", controller.SetStatusOffline)
 

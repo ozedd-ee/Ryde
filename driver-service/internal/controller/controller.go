@@ -92,22 +92,13 @@ func (s *DriverController) GetVehicle(c *gin.Context) {
 	c.JSON(http.StatusOK, vehicle)
 }
 
-func (s *DriverController) SetStatusBusy(c *gin.Context) {
-	driverID := c.Param("driver_id")
-	err := s.DriverService.SetStatusBusy(c.Request.Context(), driverID)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err})
-	}
-	c.Status(http.StatusOK)
-}
-
 func (s *DriverController) SetStatusAvailable(c *gin.Context) {
 	token := c.Query("token")
 	claims, err := utils.ValidateJWT(token)
 	if err != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": errors.New("unauthorized")})
 	}
-	err = s.DriverService.SetStatusBusy(c.Request.Context(), claims.DriverID)
+	err = s.DriverService.SetStatusAvailable(c.Request.Context(), claims.DriverID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err})
 	}

@@ -26,6 +26,9 @@ func main() {
 	driverService := service.NewDriverService(driverStore, vehicleStore)
 	driverController := controller.NewDriverController(driverService)
 
+	// Subscribe to drier status updates from trip service
+	driverStore.SubscribeToDriverStatusUpdates()
+
 	// define driver routes
 	routes.DriverRoutes(router, driverController)
 

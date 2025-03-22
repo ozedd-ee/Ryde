@@ -79,10 +79,6 @@ func (s *DriverService) GetVehicleDetails(ctx context.Context, driverID string) 
 	return vehicle, nil
 }
 
-func (s *DriverService) SetStatusBusy(ctx context.Context, driverID string) error {
-	return s.DriverStore.SetStatusBusy(ctx, driverID)
-}
-
 func (s *DriverService) SetStatusAvailable(ctx context.Context, driverID string) error {
 	return s.DriverStore.SetStatusAvailable(ctx, driverID)
 }
