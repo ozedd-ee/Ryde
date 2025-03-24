@@ -47,7 +47,9 @@ func (s *LocationStore) FindNearbyDrivers(ctx context.Context, lat, lon, radius 
 
 	var driverIDs []string
 	for _, d := range drivers {
-		driverIDs = append(driverIDs, d.Name)
+		if status := s.RedisClient.Get(ctx, d.Name).String(); status == "available" {
+			driverIDs = append(driverIDs, d.Name)
+		}
 	}
 	return driverIDs, nil
 }
