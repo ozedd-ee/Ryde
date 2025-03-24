@@ -16,4 +16,6 @@ func TripRoutes(router *gin.Engine, controller *controller.TripController) {
 	tripGroup.POST("/end-trip", controller.EndTrip) // Drop-off rider at destination
 
 	tripGroup.GET("/:id", controller.GetTripByID) // Retrieve trip details by ID
+
+	tripGroup.GET("/driver-trips/:id", controller.GetAllDriverTrips) // Get all trips by a driver
 }

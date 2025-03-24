@@ -62,6 +62,24 @@ func (s *TripStore) GetTripByDriver(ctx context.Context, driverID string) (*mode
 	return &trip, nil
 }
 
+func (s *TripStore) GetAllDriverTrips(ctx context.Context, driverID string) ([]models.Trip, error) {
+	id, err := primitive.ObjectIDFromHex(driverID)
+	if err != nil {
+		return nil, errors.New("invalid driver ID format")
+	}
+	filter := bson.M{"driver_id":id}
+	cursor, err := s.Collection.Find(ctx, filter)
+	if err != nil {
+		return nil, err
+	}
+	defer cursor.Close(ctx)
+	var trips []models.Trip
+	if err := cursor.All(ctx, &trips); err != nil {
+		return nil, err
+	}
+	return trips, nil
+}
+
 func (s *TripStore) StartTrip(ctx context.Context, tripID, driverID string) (*models.Trip, error) {
 	var updatedTrip models.Trip
 	id, err := primitive.ObjectIDFromHex(tripID)

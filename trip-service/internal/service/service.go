@@ -58,6 +58,10 @@ func (s *TripService) GetTripByDriver(ctx context.Context, driverID string) (*mo
 	return s.TripStore.GetTripByDriver(ctx, driverID)
 }
 
+func (s *TripService) GetAllDriverTrips(ctx context.Context, driverID string) ([]models.Trip, error) {
+	return s.TripStore.GetAllDriverTrips(ctx, driverID)
+}
+
 func (s *TripService) StartTrip(ctx context.Context, tripID, driverID string) (*models.Trip, error) {
 	return s.TripStore.StartTrip(ctx, tripID, driverID)
 }

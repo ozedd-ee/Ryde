@@ -93,3 +93,13 @@ func (s *TripController) EndTrip(c *gin.Context) {
 	}
 	c.JSON(http.StatusOK, updatedTrip)
 }
+
+func (s *TripController) GetAllDriverTrips(c *gin.Context) {
+	driverID := c.Param("id")
+
+	trips, err := s.TripService.GetAllDriverTrips(c.Request.Context(), driverID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err})
+	}
+	c.JSON(http.StatusOK, trips)
+}
