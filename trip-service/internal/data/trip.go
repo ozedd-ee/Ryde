@@ -82,17 +82,7 @@ func (s *TripStore) StartTrip(ctx context.Context, tripID, driverID string) (*mo
 	}
 
 	// Publish driver status update for driver service
-	payload := models.StatusUpdate{
-		DriverID: driverID,
-		Status: "busy",
-	}
-	jsonPayload, err := json.Marshal(payload)
-	if err != nil {
-		fmt.Println("Error marshalling JSON:", err)
-	}
-	if err := s.Cache.Publish(ctx, "driver_status", jsonPayload).Err(); err != nil {
-		fmt.Println("Error publishing status update:", err)
-	}
+	s.publishDriverStatusUpdate(ctx, driverID, "busy")
 	
 	return &updatedTrip, nil
 }
@@ -116,9 +106,15 @@ func (s *TripStore) EndTrip(ctx context.Context, tripID, driverID string) (*mode
 		return nil, err
 	}
 	// Publish driver status update for driver service
+	s.publishDriverStatusUpdate(ctx, driverID, "available")
+	
+	return &updatedTrip, nil
+}
+
+func (s *TripStore) publishDriverStatusUpdate(ctx context.Context, driverID, status string) {
 	payload := models.StatusUpdate{
 		DriverID: driverID,
-		Status: "available",
+		Status: status,
 	}
 	jsonPayload, err := json.Marshal(payload)
 	if err != nil {
@@ -127,6 +123,4 @@ func (s *TripStore) EndTrip(ctx context.Context, tripID, driverID string) (*mode
 	if err := s.Cache.Publish(ctx, "driver_status", jsonPayload).Err(); err != nil {
 		fmt.Println("Error publishing status update:", err)
 	}
-
-	return &updatedTrip, nil
 }
