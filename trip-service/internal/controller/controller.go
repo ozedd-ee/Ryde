@@ -37,15 +37,6 @@ func (s *TripController) NewRideRequest(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"tripBuffer": tripBuffer})
 }
 
-func (s *TripController) GetTripByID(c *gin.Context) {
-	id := c.Param("id")
-	trip, err := s.TripService.GetTripByID(c.Request.Context(), id)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err})
-	}
-	c.JSON(http.StatusOK, trip)
-}
-
 // Pick-up rider form origin
 func (s *TripController) StartTrip(c *gin.Context) {
 	token := c.Query("token")
@@ -81,6 +72,15 @@ func (s *TripController) EndTrip(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err})
 	}
 	c.JSON(http.StatusOK, updatedTrip)
+}
+
+func (s *TripController) GetTripByID(c *gin.Context) {
+	id := c.Param("id")
+	trip, err := s.TripService.GetTripByID(c.Request.Context(), id)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err})
+	}
+	c.JSON(http.StatusOK, trip)
 }
 
 func (s *TripController) GetAllDriverTrips(c *gin.Context) {

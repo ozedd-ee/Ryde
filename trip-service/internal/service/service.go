@@ -50,6 +50,14 @@ func (s *TripService) NewRideRequest(ctx context.Context, riderID string, reques
 	return nil, errors.New("sorry, all nearby drivers are currently busy")
 }
 
+func (s *TripService) StartTrip(ctx context.Context, tripKey string) (*models.TripBuffer, error) {
+	return s.TripStore.StartTrip(ctx, tripKey)
+}
+
+func (s *TripService) EndTrip(ctx context.Context, tripKey string) (*models.Trip, error) {
+	return s.TripStore.EndTrip(ctx, tripKey)
+}
+
 func (s *TripService) GetPendingTrip(ctx context.Context, tripKey string) (*models.Trip, error) {
 	return s.TripStore.GetPendingTrip(ctx, tripKey)
 }
@@ -60,12 +68,4 @@ func (s *TripService) GetTripByID(ctx context.Context, tripID string) (*models.T
 
 func (s *TripService) GetAllDriverTrips(ctx context.Context, driverID string) ([]models.Trip, error) {
 	return s.TripStore.GetAllDriverTrips(ctx, driverID)
-}
-
-func (s *TripService) StartTrip(ctx context.Context, tripKey string) (*models.TripBuffer, error) {
-	return s.TripStore.StartTrip(ctx, tripKey)
-}
-
-func (s *TripService) EndTrip(ctx context.Context, tripKey string) (*models.Trip, error) {
-	return s.TripStore.EndTrip(ctx, tripKey)
 }
