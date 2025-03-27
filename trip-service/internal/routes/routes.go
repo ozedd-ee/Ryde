@@ -18,4 +18,6 @@ func TripRoutes(router *gin.Engine, controller *controller.TripController) {
 	tripGroup.GET("/:id", controller.GetTripByID) // Retrieve trip details by ID
 
 	tripGroup.GET("/driver-trips/:id", controller.GetAllDriverTrips) // Get all trips by a driver
+
+	tripGroup.GET("/get-pending-trip/:trip-key", controller.GetPendingTrip) // Get details of a trip that's yet to be completed
 }

@@ -19,7 +19,7 @@ func NewTripService(tripStore *data.TripStore) *TripService {
 	}
 }
 
-func (s *TripService) NewRideRequest(ctx context.Context, riderID string, request *models.Order) (*models.Trip, error) {
+func (s *TripService) NewRideRequest(ctx context.Context, riderID string, request *models.Order) (*models.TripBuffer, error) {
 	drivers, err := comms.FindNearbyDrivers(request)
 	if err != nil {
 		return nil, err
@@ -41,7 +41,7 @@ func (s *TripService) NewRideRequest(ctx context.Context, riderID string, reques
 				if err != nil {
 					return nil, err
 				}
-				return s.TripStore.NewTrip(ctx, trip)
+				return s.TripStore.CacheTrip(ctx, trip)
 			} else {
 				continue
 			}
@@ -50,22 +50,22 @@ func (s *TripService) NewRideRequest(ctx context.Context, riderID string, reques
 	return nil, errors.New("sorry, all nearby drivers are currently busy")
 }
 
-func (s *TripService) GetTripByID(ctx context.Context, tripID string) (*models.Trip, error) {
-	return s.TripStore.GetTripByID(ctx, tripID)
+func (s *TripService) GetPendingTrip(ctx context.Context, tripKey string) (*models.Trip, error) {
+	return s.TripStore.GetPendingTrip(ctx, tripKey)
 }
 
-func (s *TripService) GetTripByDriver(ctx context.Context, driverID string) (*models.Trip, error) {
-	return s.TripStore.GetTripByDriver(ctx, driverID)
+func (s *TripService) GetTripByID(ctx context.Context, tripID string) (*models.Trip, error) {
+	return s.TripStore.GetTripByID(ctx, tripID)
 }
 
 func (s *TripService) GetAllDriverTrips(ctx context.Context, driverID string) ([]models.Trip, error) {
 	return s.TripStore.GetAllDriverTrips(ctx, driverID)
 }
 
-func (s *TripService) StartTrip(ctx context.Context, tripID, driverID string) (*models.Trip, error) {
-	return s.TripStore.StartTrip(ctx, tripID, driverID)
+func (s *TripService) StartTrip(ctx context.Context, tripKey string) (*models.TripBuffer, error) {
+	return s.TripStore.StartTrip(ctx, tripKey)
 }
 
-func (s *TripService) EndTrip(ctx context.Context, tripID, driverID string) (*models.Trip, error) {
-	return s.TripStore.EndTrip(ctx, tripID, driverID)
+func (s *TripService) EndTrip(ctx context.Context, tripKey string) (*models.Trip, error) {
+	return s.TripStore.EndTrip(ctx, tripKey)
 }

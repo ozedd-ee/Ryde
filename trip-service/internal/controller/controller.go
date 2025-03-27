@@ -1,14 +1,12 @@
 package controller
 
 import (
-	"errors"
 	"net/http"
 	"ryde/internal/models"
 	"ryde/internal/service"
 	"ryde/utils"
 
 	"github.com/gin-gonic/gin"
-	"go.mongodb.org/mongo-driver/mongo"
 )
 
 type TripController struct {
@@ -32,11 +30,11 @@ func (s *TripController) NewRideRequest(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid request"})
 	}
 	riderID := claims.DriverID
-	trip, err := s.TripService.NewRideRequest(c.Request.Context(), riderID, order)
+	tripBuffer, err := s.TripService.NewRideRequest(c.Request.Context(), riderID, order)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 	}
-	c.JSON(http.StatusOK, gin.H{"trip": trip})
+	c.JSON(http.StatusOK, gin.H{"tripBuffer": tripBuffer})
 }
 
 func (s *TripController) GetTripByID(c *gin.Context) {
@@ -51,43 +49,34 @@ func (s *TripController) GetTripByID(c *gin.Context) {
 // Pick-up rider form origin
 func (s *TripController) StartTrip(c *gin.Context) {
 	token := c.Query("token")
-	claims, err := utils.ValidateJWT(token)
+	_, err := utils.ValidateJWT(token)
 	if err != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
 	}
-	driverID := claims.DriverID
+	// driverID := claims.DriverID
 
-	trip, err := s.TripService.GetTripByDriver(c.Request.Context(), driverID)
-	if err != nil && err != mongo.ErrNoDocuments {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err})
-	} else if err == mongo.ErrNoDocuments {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": errors.New("trip not assigned to driver")})
-	}
+	tripKey := c.Param("trip-key")
+	// TODO: Verify caller is driver
 
-	updatedTrip, err := s.TripService.StartTrip(c.Request.Context(), trip.ID.String(), driverID)
+	tripBuffer, err := s.TripService.StartTrip(c.Request.Context(), tripKey)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err})
 	}
-	c.JSON(http.StatusOK, updatedTrip)
+	c.JSON(http.StatusOK, tripBuffer)
 }
 
 // Drop-off rider at destination
 func (s *TripController) EndTrip(c *gin.Context) {
 	token := c.Query("token")
-	claims, err := utils.ValidateJWT(token)
+	_, err := utils.ValidateJWT(token)
 	if err != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
 	}
-	driverID := claims.DriverID
+	// driverID := claims.DriverID
 
-	trip, err := s.TripService.GetTripByDriver(c.Request.Context(), driverID)
-	if err != nil && err != mongo.ErrNoDocuments {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err})
-	} else if err == mongo.ErrNoDocuments {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": errors.New("trip not assigned to driver")})
-	}
-
-	updatedTrip, err := s.TripService.EndTrip(c.Request.Context(), trip.ID.String(), driverID)
+	tripKey := c.Param("trip-key")
+	// TODO: Verify caller is driver
+	updatedTrip, err := s.TripService.EndTrip(c.Request.Context(), tripKey)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err})
 	}
@@ -102,4 +91,14 @@ func (s *TripController) GetAllDriverTrips(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err})
 	}
 	c.JSON(http.StatusOK, trips)
+}
+
+func (s *TripController) GetPendingTrip(c *gin.Context) {
+	tripKey := c.Param("trip-key")
+
+	trip, err := s.TripService.GetPendingTrip(c.Request.Context(), tripKey)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err})
+	}
+	c.JSON(http.StatusOK, trip)
 }

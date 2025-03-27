@@ -16,3 +16,9 @@ type Trip struct {
 	StartTime   time.Time          `json:"start_time" bson:"start_time"`
 	EndTime     time.Time          `json:"end_time" bson:"end_time"`
 }
+
+// For temporary caching of trips
+type TripBuffer struct {
+	Key string `json:"key"`
+	Trip Trip `json:"trip"`
+}
