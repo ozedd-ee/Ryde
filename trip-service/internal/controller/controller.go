@@ -93,6 +93,16 @@ func (s *TripController) GetAllDriverTrips(c *gin.Context) {
 	c.JSON(http.StatusOK, trips)
 }
 
+func (s *TripController) GetAllRiderTrips(c *gin.Context) {
+	riderID := c.Param("id")
+
+	trips, err := s.TripService.GetAllRiderTrips(c.Request.Context(), riderID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err})
+	}
+	c.JSON(http.StatusOK, trips)
+}
+
 func (s *TripController) GetPendingTrip(c *gin.Context) {
 	tripKey := c.Param("trip-key")
 

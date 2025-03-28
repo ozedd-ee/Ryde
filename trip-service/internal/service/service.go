@@ -69,3 +69,7 @@ func (s *TripService) GetTripByID(ctx context.Context, tripID string) (*models.T
 func (s *TripService) GetAllDriverTrips(ctx context.Context, driverID string) ([]models.Trip, error) {
 	return s.TripStore.GetAllDriverTrips(ctx, driverID)
 }
+
+func (s *TripService) GetAllRiderTrips(ctx context.Context, riderID string) ([]models.Trip, error) {
+	return s.TripStore.GetAllRiderTrips(ctx, riderID)
+}

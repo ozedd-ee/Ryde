@@ -124,6 +124,24 @@ func (s *TripStore) GetAllDriverTrips(ctx context.Context, driverID string) ([]m
 	return trips, nil
 }
 
+func (s *TripStore) GetAllRiderTrips(ctx context.Context, riderID string) ([]models.Trip, error) {
+	id, err := primitive.ObjectIDFromHex(riderID)
+	if err != nil {
+		return nil, errors.New("invalid rider ID format")
+	}
+	filter := bson.M{"rider_id": id}
+	cursor, err := s.Collection.Find(ctx, filter)
+	if err != nil {
+		return nil, err
+	}
+	defer cursor.Close(ctx)
+	var trips []models.Trip
+	if err := cursor.All(ctx, &trips); err != nil {
+		return nil, err
+	}
+	return trips, nil
+}
+
 func (s *TripStore) EndTrip(ctx context.Context, tripKey string) (*models.Trip, error) {
 	var tripBuffer models.TripBuffer
 
