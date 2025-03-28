@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"context"
 	"net/http"
 	"ryde/internal/models"
 	"ryde/internal/service"
@@ -40,14 +41,17 @@ func (s *TripController) NewRideRequest(c *gin.Context) {
 // Pick-up rider form origin
 func (s *TripController) StartTrip(c *gin.Context) {
 	token := c.Query("token")
-	_, err := utils.ValidateJWT(token)
+	claims, err := utils.ValidateJWT(token)
 	if err != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
 	}
-	// driverID := claims.DriverID
+	driverID := claims.DriverID
 
 	tripKey := c.Param("trip-key")
-	// TODO: Verify caller is driver
+	// Verify caller is driver for the trip
+	if !s.callerIsDriver(c.Request.Context(), driverID, tripKey) {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
+	}
 
 	tripBuffer, err := s.TripService.StartTrip(c.Request.Context(), tripKey)
 	if err != nil {
@@ -59,14 +63,17 @@ func (s *TripController) StartTrip(c *gin.Context) {
 // Drop-off rider at destination
 func (s *TripController) EndTrip(c *gin.Context) {
 	token := c.Query("token")
-	_, err := utils.ValidateJWT(token)
+	claims, err := utils.ValidateJWT(token)
 	if err != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
 	}
-	// driverID := claims.DriverID
+	driverID := claims.DriverID
 
 	tripKey := c.Param("trip-key")
-	// TODO: Verify caller is driver
+	// Verify caller is driver for the trip
+	if !s.callerIsDriver(c.Request.Context(), driverID, tripKey) {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
+	}
 	updatedTrip, err := s.TripService.EndTrip(c.Request.Context(), tripKey)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err})
@@ -111,4 +118,13 @@ func (s *TripController) GetPendingTrip(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err})
 	}
 	c.JSON(http.StatusOK, trip)
+}
+
+// ----------- Internal function -----------
+func (s *TripController) callerIsDriver(ctx context.Context, callerID, tripKey string) bool {
+	trip, err := s.TripService.GetPendingTrip(ctx, tripKey)
+	if err != nil {
+		return false
+	}
+	return callerID == trip.DriverID.String()
 }
