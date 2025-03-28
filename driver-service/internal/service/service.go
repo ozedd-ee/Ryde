@@ -7,6 +7,7 @@ import (
 	"ryde/internal/models"
 	"ryde/utils"
 
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
@@ -60,8 +61,14 @@ func (s *DriverService) GetDriver(ctx context.Context, driverID string) (*models
 	return s.DriverStore.GetDriver(ctx, driverID)
 }
 
-func (s *DriverService) AddVehicle(ctx context.Context, vehicle *models.Vehicle) (*models.Vehicle, error) {
-	exists, err := s.DriverStore.GetDriverByEmail(ctx, vehicle.RegNum)
+func (s *DriverService) AddVehicle(ctx context.Context, driverID string, vehicle *models.Vehicle) (*models.Vehicle, error) {
+	driver_id, err := primitive.ObjectIDFromHex(driverID)
+	if err != nil {
+		return nil, err
+	}
+	vehicle.DriverID = driver_id
+
+	exists, err := s.VehicleStore.GetVehicleByRegNum(ctx, vehicle.RegNum)
 	if err != nil && err != mongo.ErrNoDocuments {
 		return nil, err
 	} else if exists != nil {

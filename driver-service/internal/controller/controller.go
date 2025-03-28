@@ -65,12 +65,17 @@ func (s *DriverController) GetDriver(c *gin.Context) {
 }
 
 func (s *DriverController) AddVehicle(c *gin.Context) {
+	token := c.Query("token")
+	claims, err := utils.ValidateJWT(token)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": errors.New("unauthorized")})
+	}
+
 	var vehicle models.Vehicle
 	if err := c.ShouldBindJSON(&vehicle); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err})
 	}
-
-	newVehicle, err := s.DriverService.AddVehicle(c.Request.Context(), &vehicle)
+	newVehicle, err := s.DriverService.AddVehicle(c.Request.Context(), claims.DriverID, &vehicle)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err})
 	}
