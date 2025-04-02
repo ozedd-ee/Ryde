@@ -27,5 +27,5 @@ func Init() *mongo.Database {
 	}
 
 	fmt.Println("Connection to MongoDB successful")
-	return client.Database("Data")
+	return client.Database("user_db")
 }
