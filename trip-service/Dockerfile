@@ -25,8 +25,8 @@ WORKDIR /root/
 # Copy the Go binary from the builder image
 COPY --from=builder /app/main .
 
-# Expose port 8082
-EXPOSE 8082
+# Expose port 8084
+EXPOSE 8084
 
 # Run the Go app
 CMD ["./main"]

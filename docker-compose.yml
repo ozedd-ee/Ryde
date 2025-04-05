@@ -1,0 +1,43 @@
+include:
+  - ./user-service/docker-compose.yml
+  - ./driver-service/docker-compose.yml
+  - ./location-service/docker-compose.yml
+  - ./notification-service/docker-compose.yml
+  - ./trip-service/docker-compose.yml
+
+services:
+  redis:
+    image: redis:latest
+    container_name: ryde-redis
+    restart: always
+    ports: 
+      - "6379:6379"
+    networks:
+      - ryde-network
+
+  mongo:
+    image: mongo:latest
+    container_name: ryde-mongo
+    restart: always
+    ports:
+      - "27017:27017"
+    networks:
+      - ryde-network
+
+  ryde-root:
+    image: alpine
+    command: tail -f /dev/null
+    depends_on:
+      - mongo
+      - redis
+      - user-service
+      - driver-service
+      - location-service
+      - notification-service
+      - trip-service
+    networks:
+      - ryde-network
+
+networks:
+  ryde-network:
+    external: true

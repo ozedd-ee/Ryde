@@ -1,11 +1,11 @@
 services:
-  location-service:
+  user-service:
     build: 
       context: .
     ports:
-      - "8082:8082"
+      - "8080:8080"
     environment:
-      - REDIS_URL=redis://redis:6379
+      - MONGO_URI=mongodb://mongo:27017/user_db 
     networks:
       - ryde-network
 
