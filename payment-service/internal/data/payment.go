@@ -12,13 +12,13 @@ import (
 
 type PaymentStore struct {
 	PaymentCollection *mongo.Collection
-	SubaccountCollection *mongo.Collection
+	SubAccountCollection *mongo.Collection
 }
 
 func NewPaymentStore(db *mongo.Database) *PaymentStore {
 	return &PaymentStore{
 		PaymentCollection: db.Collection("payments"),
-		SubaccountCollection: db.Collection("subaccounts"),
+		SubAccountCollection: db.Collection("subAccounts"),
 	}
 }
 
@@ -42,4 +42,26 @@ func (s *PaymentStore) GetPayment(ctx context.Context, paymentID string) (*model
 		return nil, err
 	}
 	return &payment, nil
+}
+
+func (s *PaymentStore) StoreSubAccountID(ctx context.Context, subAccountID *models.SubAccountID) error {
+	_, err := s.SubAccountCollection.InsertOne(ctx, subAccountID)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (s *PaymentStore) GetSubAccountIDByDriverID(ctx context.Context, driverID string) (*models.SubAccountID, error) {
+	var subAccountID models.SubAccountID
+	driver_id, err := primitive.ObjectIDFromHex(driverID)
+	if err != nil {
+		return nil, err
+	}
+
+	filter := bson.M{"driver_id": driver_id}
+	if err := s.SubAccountCollection.FindOne(ctx, filter).Decode(&subAccountID); err != nil {
+		return nil, err
+	}
+	return &subAccountID, nil
 }
