@@ -64,6 +64,29 @@ func (s *PaymentService) CreateSubAccount(ctx context.Context, driverID string, 
 	return &subAccountID, nil
 }
 
+func (s *PaymentService) AddPaymentMethod(ctx context.Context, riderID, email string) (string, error) {
+	txRequest := paystack.TransactionRequest{
+		CallbackURL: "",
+		Amount: 100, // 1 Naira
+		Email: email,
+		Currency: "NGN",
+		Metadata: map[string]any{"rider_id": riderID},
+	}
+	resp, err := s.PaystackClient.Transaction.Initialize(&txRequest)
+	if err != nil {
+		return "", err
+	}
+	data, ok := resp["data"].(map[string]any)
+	if !ok {
+		return "", errors.New("unexpected response format from Paystack")
+	}
+	authURL, ok := data["authorization_url"].(string)
+	if !ok {
+		return "", errors.New("authorization url not found in response")
+	}
+	return authURL, nil
+}
+
 func (s *PaymentService) GetSubAccountIDByDriverID(ctx context.Context, driverID string) (*models.SubAccountID, error) {
 	return s.PaymentStore.GetSubAccountIDByDriverID(ctx, driverID)	
 }
