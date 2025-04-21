@@ -13,12 +13,14 @@ import (
 type PaymentStore struct {
 	PaymentCollection *mongo.Collection
 	SubAccountCollection *mongo.Collection
+	PaymentMethodCollection *mongo.Collection
 }
 
 func NewPaymentStore(db *mongo.Database) *PaymentStore {
 	return &PaymentStore{
 		PaymentCollection: db.Collection("payments"),
 		SubAccountCollection: db.Collection("subAccounts"),
+		PaymentMethodCollection: db.Collection("paymentMethods"),
 	}
 }
 
@@ -29,6 +31,14 @@ func (s *PaymentStore) NewPayment(ctx context.Context, payment *models.Payment) 
 	}
 	payment.PaymentID = result.InsertedID.(primitive.ObjectID)
 	return payment, nil
+}
+
+func (s *PaymentStore) SaveRiderPaymentMethod(ctx context.Context, PaymentMethod *models.PaymentMethod) error {
+	_, err := s.PaymentMethodCollection.InsertOne(ctx, PaymentMethod)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func (s *PaymentStore) GetPayment(ctx context.Context, paymentID string) (*models.Payment, error) {

@@ -12,3 +12,13 @@ type Payment struct {
 	TransactionRef  string             `json:"tx_ref" bson:"tx_ref"`
 	TransactionTime time.Time          `json:"tx_time" bson:"tx_time"`
 }
+
+type PaymentMethod struct {
+	Email    string `json:"email" bson:"email"`
+	AuthCode string `json:"auth_code" bson:"auth_code"`
+	CardType string `json:"card_type" bson:"card_type"`
+	Last4    string `json:"last4" bson:"last4"`
+	ExpMonth string `json:"exp_month" bson:"exp_month"`
+	ExpYear  string `json:"exp_year" bson:"exp_year"`
+	Bank     string `json:"bank" bson:"bank"`
+}

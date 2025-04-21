@@ -30,3 +30,17 @@ func (pc *PaymentController) NewSubAccount(c *gin.Context) {
 	}
 	c.JSON(http.StatusOK, subAccountID)
 }
+
+func (pc *PaymentController) PaystackCallbackHandler(c *gin.Context) {
+	reference := c.Query("reference")
+	if reference == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Missing transaction reference"})
+	}
+
+	err := pc.PaymentService.PaystackCallbackHandler(c.Request.Context(), reference)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err})
+	}
+
+	c.Status(http.StatusOK)
+}

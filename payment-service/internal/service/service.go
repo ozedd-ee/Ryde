@@ -87,6 +87,32 @@ func (s *PaymentService) AddPaymentMethod(ctx context.Context, riderID, email st
 	return authURL, nil
 }
 
+func (s *PaymentService) PaystackCallbackHandler(ctx context.Context, reference string) error {
+	transaction, err := s.PaystackClient.Transaction.Verify(reference)
+	if err != nil {
+		return errors.New("failed to verify transaction")
+	}
+
+    if transaction.Status != "success" {
+        return errors.New("transaction not successful:" +  transaction.Status)
+    }
+    auth := transaction.Authorization
+    if auth.AuthorizationCode == "" {
+        return errors.New("no authorization code found")
+    }
+
+	paymentMethod := models.PaymentMethod{
+		Email : transaction.Customer.Email,
+		AuthCode : auth.AuthorizationCode,
+		CardType : auth.CardType,
+		Last4 : auth.Last4,
+		ExpMonth : auth.ExpMonth,
+		ExpYear : auth.ExpYear,
+		Bank : auth.Bank,
+	}
+    return s.PaymentStore.SaveRiderPaymentMethod(ctx, &paymentMethod)
+}
+
 func (s *PaymentService) GetSubAccountIDByDriverID(ctx context.Context, driverID string) (*models.SubAccountID, error) {
 	return s.PaymentStore.GetSubAccountIDByDriverID(ctx, driverID)	
 }
