@@ -75,3 +75,12 @@ func (s *PaymentStore) GetSubAccountIDByDriverID(ctx context.Context, driverID s
 	}
 	return &subAccountID, nil
 }
+
+func (s *PaymentStore) GetAuthorizationCodeByEmail(ctx context.Context, email string) (string, error) {
+	var paymentMethod *models.PaymentMethod 
+	filter := bson.M{"email": email}
+	if err := s.PaymentMethodCollection.FindOne(ctx, filter).Decode(&paymentMethod); err != nil {
+		return "", err
+	}
+	return paymentMethod.AuthCode, nil
+}

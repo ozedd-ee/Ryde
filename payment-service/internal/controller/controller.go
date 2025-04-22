@@ -44,3 +44,17 @@ func (pc *PaymentController) PaystackCallbackHandler(c *gin.Context) {
 
 	c.Status(http.StatusOK)
 }
+
+// TODO: Add authentication
+func (pc *PaymentController) ChargeCard(c *gin.Context) {
+	var chargeRequest models.ChargeRequest
+	if err := c.ShouldBindJSON(&chargeRequest); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request"})
+	}
+
+	payment, err := pc.PaymentService.ChargeCard(c.Request.Context(), &chargeRequest)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to charge card"})
+	}
+	c.JSON(http.StatusOK, payment)
+}

@@ -8,9 +8,11 @@ import (
 
 type Payment struct {
 	PaymentID       primitive.ObjectID `json:"payment_id,omitempty" bson:"payment_id,omitempty"`
+	PaystackID      int                `json:"paystack_id" bson:"paystack_id"`
 	TripID          string             `json:"trip_id" bson:"trip_id"`
 	TransactionRef  string             `json:"tx_ref" bson:"tx_ref"`
 	TransactionTime time.Time          `json:"tx_time" bson:"tx_time"`
+	Amount          float32            `json:"amount" bson:"amount"`
 }
 
 type PaymentMethod struct {
@@ -21,4 +23,10 @@ type PaymentMethod struct {
 	ExpMonth string `json:"exp_month" bson:"exp_month"`
 	ExpYear  string `json:"exp_year" bson:"exp_year"`
 	Bank     string `json:"bank" bson:"bank"`
+}
+
+type ChargeRequest struct {
+	Email  string  `json:"email"`
+	RideID string  `json:"ride_id"`
+	Amount float32 `json:"amount"`
 }

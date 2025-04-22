@@ -6,6 +6,7 @@ import (
 	"os"
 	"ryde/internal/data"
 	"ryde/internal/models"
+	"time"
 
 	"github.com/rpip/paystack-go"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -87,6 +88,7 @@ func (s *PaymentService) AddPaymentMethod(ctx context.Context, riderID, email st
 	return authURL, nil
 }
 
+// To be triggered in response to 'AddPayMentMethod'
 func (s *PaymentService) PaystackCallbackHandler(ctx context.Context, reference string) error {
 	transaction, err := s.PaystackClient.Transaction.Verify(reference)
 	if err != nil {
@@ -111,6 +113,38 @@ func (s *PaymentService) PaystackCallbackHandler(ctx context.Context, reference 
 		Bank : auth.Bank,
 	}
     return s.PaymentStore.SaveRiderPaymentMethod(ctx, &paymentMethod)
+}
+
+func (s *PaymentService) ChargeCard(ctx context.Context, chargeRequest *models.ChargeRequest) (*models.Payment, error) {
+	authorizationCode, err := s.PaymentStore.GetAuthorizationCodeByEmail(ctx, chargeRequest.Email)
+	if err != nil {
+		return nil, err
+	}
+
+	chargeReq := paystack.TransactionRequest{
+		AuthorizationCode: authorizationCode, //Use saved auth code
+		Email:             chargeRequest.Email,
+		Amount:            chargeRequest.Amount,
+		Metadata:          map[string]any{"ride_id": chargeRequest.RideID},
+	}
+
+	tx, err := s.PaystackClient.Transaction.ChargeAuthorization(&chargeReq)
+	if err != nil || tx.Status != "Success" {
+		return nil, err
+	}
+	payment := models.Payment{
+		PaystackID: tx.ID,
+		TripID: tx.Metadata,  // Why is Metadata a string?
+		TransactionRef: tx.Reference,
+		TransactionTime: time.Now(), // Why is tx.CreatedAt a string? Use time module, for now.
+		Amount: tx.Amount,
+	}
+	newPayment, err := s.PaymentStore.NewPayment(ctx, &payment)
+	if err != nil {
+		return nil, err
+	}
+	
+	return newPayment, nil
 }
 
 func (s *PaymentService) GetSubAccountIDByDriverID(ctx context.Context, driverID string) (*models.SubAccountID, error) {
