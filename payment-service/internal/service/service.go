@@ -53,8 +53,8 @@ func (s *PaymentService) CreateSubAccount(ctx context.Context, driverID string, 
 
 	//Store driver's new SubAccount ID and code
 	subAccountID := models.SubAccountID{
-		DriverID: driver_id,
-		ID: result.ID,
+		DriverID:       driver_id,
+		ID:             result.ID,
 		SubAccountCode: result.SubAccountCode,
 	}
 	if err := s.PaymentStore.StoreSubAccountID(ctx, &subAccountID); err != nil {
@@ -68,10 +68,10 @@ func (s *PaymentService) CreateSubAccount(ctx context.Context, driverID string, 
 func (s *PaymentService) AddPaymentMethod(ctx context.Context, riderID, email string) (string, error) {
 	txRequest := paystack.TransactionRequest{
 		CallbackURL: "",
-		Amount: 100, // 1 Naira
-		Email: email,
-		Currency: "NGN",
-		Metadata: map[string]any{"rider_id": riderID},
+		Amount:      100, // 1 Naira
+		Email:       email,
+		Currency:    "NGN",
+		Metadata:    map[string]any{"rider_id": riderID},
 	}
 	resp, err := s.PaystackClient.Transaction.Initialize(&txRequest)
 	if err != nil {
@@ -95,24 +95,24 @@ func (s *PaymentService) PaystackCallbackHandler(ctx context.Context, reference 
 		return errors.New("failed to verify transaction")
 	}
 
-    if transaction.Status != "success" {
-        return errors.New("transaction not successful:" +  transaction.Status)
-    }
-    auth := transaction.Authorization
-    if auth.AuthorizationCode == "" {
-        return errors.New("no authorization code found")
-    }
+	if transaction.Status != "success" {
+		return errors.New("transaction not successful:" + transaction.Status)
+	}
+	auth := transaction.Authorization
+	if auth.AuthorizationCode == "" {
+		return errors.New("no authorization code found")
+	}
 
 	paymentMethod := models.PaymentMethod{
-		Email : transaction.Customer.Email,
-		AuthCode : auth.AuthorizationCode,
-		CardType : auth.CardType,
-		Last4 : auth.Last4,
-		ExpMonth : auth.ExpMonth,
-		ExpYear : auth.ExpYear,
-		Bank : auth.Bank,
+		Email:    transaction.Customer.Email,
+		AuthCode: auth.AuthorizationCode,
+		CardType: auth.CardType,
+		Last4:    auth.Last4,
+		ExpMonth: auth.ExpMonth,
+		ExpYear:  auth.ExpYear,
+		Bank:     auth.Bank,
 	}
-    return s.PaymentStore.SaveRiderPaymentMethod(ctx, &paymentMethod)
+	return s.PaymentStore.SaveRiderPaymentMethod(ctx, &paymentMethod)
 }
 
 func (s *PaymentService) ChargeCard(ctx context.Context, chargeRequest *models.ChargeRequest) (*models.Payment, error) {
@@ -121,32 +121,37 @@ func (s *PaymentService) ChargeCard(ctx context.Context, chargeRequest *models.C
 		return nil, err
 	}
 
+	subAccountID, err := s.PaymentStore.GetSubAccountIDByDriverID(ctx, chargeRequest.To)
+	if err != nil {
+		return nil, err
+	}
 	chargeReq := paystack.TransactionRequest{
 		AuthorizationCode: authorizationCode, //Use saved auth code
 		Email:             chargeRequest.Email,
 		Amount:            chargeRequest.Amount,
+		SubAccount:        subAccountID.SubAccountCode,
+		Bearer:            "subaccount",
 		Metadata:          map[string]any{"ride_id": chargeRequest.RideID},
 	}
 
 	tx, err := s.PaystackClient.Transaction.ChargeAuthorization(&chargeReq)
-	if err != nil || tx.Status != "Success" {
+	if err != nil || tx.Status != "success" {
 		return nil, err
 	}
 	payment := models.Payment{
-		PaystackID: tx.ID,
-		TripID: tx.Metadata,  // Why is Metadata a string?
-		TransactionRef: tx.Reference,
-		TransactionTime: time.Now(), // Why is tx.CreatedAt a string? Use time module, for now.
-		Amount: tx.Amount,
+		PaystackID:      tx.ID,
+		TripID:          tx.Metadata, // Why is Metadata a string?
+		TransactionRef:  tx.Reference,
+		TransactionTime: time.Now(), // Why is tx.CreatedAt a string?
+		Amount:          tx.Amount,
 	}
 	newPayment, err := s.PaymentStore.NewPayment(ctx, &payment)
 	if err != nil {
 		return nil, err
 	}
-	
 	return newPayment, nil
 }
 
 func (s *PaymentService) GetSubAccountIDByDriverID(ctx context.Context, driverID string) (*models.SubAccountID, error) {
-	return s.PaymentStore.GetSubAccountIDByDriverID(ctx, driverID)	
+	return s.PaymentStore.GetSubAccountIDByDriverID(ctx, driverID)
 }
