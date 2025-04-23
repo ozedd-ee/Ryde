@@ -26,7 +26,8 @@ type PaymentMethod struct {
 }
 
 type ChargeRequest struct {
-	Email  string  `json:"email"`
+	Email  string  `json:"email"` // Rider email
 	RideID string  `json:"ride_id"`
+	To     string  `json:"to"` // Driver ID
 	Amount float32 `json:"amount"`
 }
