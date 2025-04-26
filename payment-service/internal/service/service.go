@@ -14,6 +14,7 @@ import (
 
 type PaymentService struct {
 	PaymentStore   *data.PaymentStore
+	AccountStore   *data.AccountStore
 	PaystackClient *paystack.Client
 }
 
@@ -27,7 +28,7 @@ func NewPaymentService(paymentStore *data.PaymentStore) *PaymentService {
 	}
 }
 
-func (s *PaymentService) CreateSubAccount(ctx context.Context, driverID string, subaccount *models.SubAccountRequest) (*models.SubAccountID, error) {
+func (s *PaymentService) AddDriverAccounts(ctx context.Context, driverID string, driverAccounts *models.DriverAccountRequest) (*models.DriverAccountIDs, error) {
 	driver_id, err := primitive.ObjectIDFromHex(driverID)
 	if err != nil {
 		return nil, errors.New("invalid driver id format")
@@ -35,34 +36,51 @@ func (s *PaymentService) CreateSubAccount(ctx context.Context, driverID string, 
 
 	// Unpack request into Paystack's SubAccount type
 	subAccountRequest := paystack.SubAccount{
-		BusinessName:        subaccount.BusinessName,
-		Description:         subaccount.Description,
-		PrimaryContactName:  subaccount.PrimaryContactName,
-		PrimaryContactEmail: subaccount.PrimaryContactEmail,
-		PrimaryContactPhone: subaccount.PrimaryContactPhone,
-		AccountNumber:       subaccount.AccountNumber,
-		SettlementBank:      subaccount.SettlementBank,
-		PercentageCharge:    subaccount.PercentageCharge,
+		BusinessName:        driverAccounts.BusinessName,
+		Description:         driverAccounts.Description,
+		PrimaryContactName:  driverAccounts.PrimaryContactName,
+		PrimaryContactEmail: driverAccounts.PrimaryContactEmail,
+		PrimaryContactPhone: driverAccounts.PrimaryContactPhone,
+		AccountNumber:       driverAccounts.AccountNumber,
+		SettlementBank:      driverAccounts.SettlementBank,
+		PercentageCharge:    driverAccounts.PercentageCharge,
+	}
+
+	// Unpack request into Paystack's TransferRecipient type
+	transferRecipientRequest := paystack.TransferRecipient{
+		Type:          "nuban",
+		Name:          driverAccounts.PrimaryContactName,
+		AccountNumber: driverAccounts.AccountNumber,
+		BankCode:      driverAccounts.BankCode,
+		Currency:      "NGN",
 	}
 
 	// Create new SubAccount
-	result, err := s.PaystackClient.SubAccount.Create(&subAccountRequest)
+	subAccount, err := s.PaystackClient.SubAccount.Create(&subAccountRequest)
 	if err != nil {
 		return nil, err
 	}
 
-	//Store driver's new SubAccount ID and code
-	subAccountID := models.SubAccountID{
-		DriverID:       driver_id,
-		ID:             result.ID,
-		SubAccountCode: result.SubAccountCode,
-	}
-	if err := s.PaymentStore.StoreSubAccountID(ctx, &subAccountID); err != nil {
+	// Create new TransferRecipient
+	transferRecipient, err := s.PaystackClient.Transfer.CreateRecipient(&transferRecipientRequest)
+	if err != nil {
 		return nil, err
 	}
 
-	// Return the new SubAccount's ID
-	return &subAccountID, nil
+	DriverAccountIDs := models.DriverAccountIDs{
+		DriverID:            driver_id,
+		SubAccountID:        subAccount.ID,
+		SubAccountCode:      subAccount.SubAccountCode,
+		TransferRecipientID: transferRecipient.ID,
+		RecipientCode:       transferRecipient.RecipientCode,
+	}
+	// Store DriverAccountIDs
+	if err := s.AccountStore.StoreDriverAccountIDs(ctx, &DriverAccountIDs); err != nil {
+		return nil, err
+	}
+
+	// Return the new DriverAccountIDs
+	return &DriverAccountIDs, nil
 }
 
 func (s *PaymentService) AddPaymentMethod(ctx context.Context, riderID, email string) (string, error) {
@@ -121,7 +139,7 @@ func (s *PaymentService) ChargeCard(ctx context.Context, chargeRequest *models.C
 		return nil, err
 	}
 
-	subAccountID, err := s.PaymentStore.GetSubAccountIDByDriverID(ctx, chargeRequest.To)
+	driverAccountIDs, err := s.PaymentStore.GetDriverAccountIDsByDriverID(ctx, chargeRequest.To)
 	if err != nil {
 		return nil, err
 	}
@@ -129,7 +147,7 @@ func (s *PaymentService) ChargeCard(ctx context.Context, chargeRequest *models.C
 		AuthorizationCode: authorizationCode, //Use saved auth code
 		Email:             chargeRequest.Email,
 		Amount:            chargeRequest.Amount,
-		SubAccount:        subAccountID.SubAccountCode,
+		SubAccount:        driverAccountIDs.SubAccountCode,
 		Bearer:            "subaccount",
 		Metadata:          map[string]any{"ride_id": chargeRequest.RideID},
 	}
@@ -152,6 +170,6 @@ func (s *PaymentService) ChargeCard(ctx context.Context, chargeRequest *models.C
 	return newPayment, nil
 }
 
-func (s *PaymentService) GetSubAccountIDByDriverID(ctx context.Context, driverID string) (*models.SubAccountID, error) {
-	return s.PaymentStore.GetSubAccountIDByDriverID(ctx, driverID)
+func (s *PaymentService) GetSubAccountIDByDriverID(ctx context.Context, driverID string) (*models.DriverAccountIDs, error) {
+	return s.PaymentStore.GetDriverAccountIDsByDriverID(ctx, driverID)
 }

@@ -18,17 +18,17 @@ func NewPaymentController(paymentService *service.PaymentService) *PaymentContro
 	}
 }
 
-func (pc *PaymentController) NewSubAccount(c *gin.Context) {
+func (pc *PaymentController) AddDriverAccount(c *gin.Context) {
 	driverID := c.Param("driver-id")
-	var subAccountRequest models.SubAccountRequest
-	if err := c.ShouldBindJSON(&subAccountRequest); err != nil {
+	var DriverAccountRequest models.DriverAccountRequest
+	if err := c.ShouldBindJSON(&DriverAccountRequest); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid request"})
 	}
-	subAccountID, err := pc.PaymentService.CreateSubAccount(c.Request.Context(), driverID, &subAccountRequest)
+	DriverAccountIDs, err := pc.PaymentService.AddDriverAccounts(c.Request.Context(), driverID, &DriverAccountRequest)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err})
 	}
-	c.JSON(http.StatusOK, subAccountID)
+	c.JSON(http.StatusOK, DriverAccountIDs)
 }
 
 func (pc *PaymentController) PaystackCallbackHandler(c *gin.Context) {
