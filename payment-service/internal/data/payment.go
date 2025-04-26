@@ -53,34 +53,3 @@ func (s *PaymentStore) GetPayment(ctx context.Context, paymentID string) (*model
 	}
 	return &payment, nil
 }
-
-func (s *PaymentStore) StoreSubAccountID(ctx context.Context, subAccountID *models.SubAccountID) error {
-	_, err := s.SubAccountCollection.InsertOne(ctx, subAccountID)
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
-func (s *PaymentStore) GetSubAccountIDByDriverID(ctx context.Context, driverID string) (*models.SubAccountID, error) {
-	var subAccountID models.SubAccountID
-	driver_id, err := primitive.ObjectIDFromHex(driverID)
-	if err != nil {
-		return nil, err
-	}
-
-	filter := bson.M{"driver_id": driver_id}
-	if err := s.SubAccountCollection.FindOne(ctx, filter).Decode(&subAccountID); err != nil {
-		return nil, err
-	}
-	return &subAccountID, nil
-}
-
-func (s *PaymentStore) GetAuthorizationCodeByEmail(ctx context.Context, email string) (string, error) {
-	var paymentMethod *models.PaymentMethod 
-	filter := bson.M{"email": email}
-	if err := s.PaymentMethodCollection.FindOne(ctx, filter).Decode(&paymentMethod); err != nil {
-		return "", err
-	}
-	return paymentMethod.AuthCode, nil
-}
