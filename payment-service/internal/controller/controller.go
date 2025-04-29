@@ -77,3 +77,12 @@ func (pc *PaymentController) ChargeCard(c *gin.Context) {
 	}
 	c.JSON(http.StatusOK, payment)
 }
+
+func (pc *PaymentController) GetPayment(c *gin.Context) {
+	paymentID := c.Param("id")
+	payment, err := pc.PaymentService.GetPayment(c.Request.Context(), paymentID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err})
+	}
+	c.JSON(http.StatusOK, payment)
+}
