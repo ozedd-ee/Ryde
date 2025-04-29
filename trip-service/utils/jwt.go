@@ -11,7 +11,7 @@ import (
 var jwtSecret = os.Getenv("SECRET_KEY") // For test purposes
 
 type Claims struct {
-	DriverID string `json:"_id"`
+	UserID string `json:"_id"`
 	jwt.StandardClaims
 }
 
@@ -21,7 +21,7 @@ func ValidateJWT(tokenString string) (*Claims, error) {
 	}
 	claims := &Claims{}
 
-	token, err := jwt.ParseWithClaims(tokenString, claims, func(token *jwt.Token) (interface{}, error) {
+	token, err := jwt.ParseWithClaims(tokenString, claims, func(token *jwt.Token) (any, error) {
 		return jwtSecret, nil
 	})
 	if err != nil || !token.Valid {

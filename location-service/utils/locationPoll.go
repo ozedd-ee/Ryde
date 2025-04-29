@@ -40,7 +40,7 @@ func PollLocation(c *gin.Context) {
 			fmt.Println("Read error", err)
 			break
 		}
-		user_id := claims.DriverID
+		user_id := claims.UserID
 		var update struct {
 			lat float64
 			lon float64

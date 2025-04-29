@@ -75,7 +75,7 @@ func (s *DriverController) AddVehicle(c *gin.Context) {
 	if err := c.ShouldBindJSON(&vehicle); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err})
 	}
-	newVehicle, err := s.DriverService.AddVehicle(c.Request.Context(), claims.DriverID, &vehicle)
+	newVehicle, err := s.DriverService.AddVehicle(c.Request.Context(), claims.UserID, &vehicle)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err})
 	}
@@ -103,7 +103,7 @@ func (s *DriverController) SetStatusAvailable(c *gin.Context) {
 	if err != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": errors.New("unauthorized")})
 	}
-	err = s.DriverService.SetStatusAvailable(c.Request.Context(), claims.DriverID)
+	err = s.DriverService.SetStatusAvailable(c.Request.Context(), claims.UserID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err})
 	}
@@ -116,7 +116,7 @@ func (s *DriverController) SetStatusOffline(c *gin.Context) {
 	if err != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": errors.New("unauthorized")})
 	}
-	err = s.DriverService.SetStatusOffline(c.Request.Context(), claims.DriverID)
+	err = s.DriverService.SetStatusOffline(c.Request.Context(), claims.UserID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err})
 	}

@@ -11,7 +11,7 @@ import (
 var jwtSecret = os.Getenv("DRIVERS_SECRET_KEY")
 
 type Claims struct {
-	DriverID string `json:"_id"`
+	UserID string `json:"_id"`
 	jwt.StandardClaims
 }
 
