@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"ryde/internal/models"
 	"ryde/internal/service"
+	"ryde/utils"
 
 	"github.com/gin-gonic/gin"
 )
@@ -19,16 +20,34 @@ func NewPaymentController(paymentService *service.PaymentService) *PaymentContro
 }
 
 func (pc *PaymentController) AddDriverAccount(c *gin.Context) {
-	driverID := c.Param("driver-id")
+	token := c.Query("token")
+	claims, err := utils.ValidateJWT(token)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
+	}
 	var DriverAccountRequest models.DriverAccountRequest
 	if err := c.ShouldBindJSON(&DriverAccountRequest); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid request"})
 	}
-	DriverAccountIDs, err := pc.PaymentService.AddDriverAccounts(c.Request.Context(), driverID, &DriverAccountRequest)
+	DriverAccountIDs, err := pc.PaymentService.AddDriverAccounts(c.Request.Context(), claims.UserID, &DriverAccountRequest)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err})
 	}
 	c.JSON(http.StatusOK, DriverAccountIDs)
+}
+
+func (pc *PaymentController) AddPaymentMethod(c *gin.Context) {
+	token := c.Query("token")
+	claims, err := utils.ValidateJWT(token)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
+	}
+	email := c.Param("email")
+	authURL, err := pc.PaymentService.AddPaymentMethod(c.Request.Context(), claims.UserID, email)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err})
+	}
+	c.Redirect(http.StatusFound, authURL)
 }
 
 func (pc *PaymentController) PaystackCallbackHandler(c *gin.Context) {
