@@ -4,6 +4,7 @@ go 1.21.3
 
 require (
 	github.com/gin-gonic/gin v1.10.0
+	github.com/golang-jwt/jwt v3.2.2+incompatible
 	github.com/rpip/paystack-go v0.0.0-20210725234520-196191f8ab58
 	go.mongodb.org/mongo-driver v1.17.3
 )
