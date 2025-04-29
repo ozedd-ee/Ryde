@@ -139,7 +139,7 @@ func (s *PaymentService) ChargeCard(ctx context.Context, chargeRequest *models.C
 		return nil, err
 	}
 
-	driverAccountIDs, err := s.PaymentStore.GetDriverAccountIDsByDriverID(ctx, chargeRequest.To)
+	driverAccountIDs, err := s.AccountStore.GetDriverAccountIDsByDriverID(ctx, chargeRequest.To)
 	if err != nil {
 		return nil, err
 	}
@@ -171,5 +171,9 @@ func (s *PaymentService) ChargeCard(ctx context.Context, chargeRequest *models.C
 }
 
 func (s *PaymentService) GetSubAccountIDByDriverID(ctx context.Context, driverID string) (*models.DriverAccountIDs, error) {
-	return s.PaymentStore.GetDriverAccountIDsByDriverID(ctx, driverID)
+	return s.AccountStore.GetDriverAccountIDsByDriverID(ctx, driverID)
+}
+
+func (s *PaymentService) GetPayment(ctx context.Context, paymentID string) (*models.Payment, error) {
+	return s.PaymentStore.GetPayment(ctx, paymentID)
 }

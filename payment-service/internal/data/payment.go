@@ -12,14 +12,12 @@ import (
 
 type PaymentStore struct {
 	PaymentCollection *mongo.Collection
-	SubAccountCollection *mongo.Collection
 	PaymentMethodCollection *mongo.Collection
 }
 
 func NewPaymentStore(db *mongo.Database) *PaymentStore {
 	return &PaymentStore{
 		PaymentCollection: db.Collection("payments"),
-		SubAccountCollection: db.Collection("subAccounts"),
 		PaymentMethodCollection: db.Collection("paymentMethods"),
 	}
 }
@@ -52,4 +50,13 @@ func (s *PaymentStore) GetPayment(ctx context.Context, paymentID string) (*model
 		return nil, err
 	}
 	return &payment, nil
+}
+
+func (s *PaymentStore) GetAuthorizationCodeByEmail(ctx context.Context, email string) (string, error) {
+	var paymentMethod *models.PaymentMethod
+	filter := bson.M{"email": email}
+	if err := s.PaymentMethodCollection.FindOne(ctx, filter).Decode(&paymentMethod); err != nil {
+		return "", err
+	}
+	return paymentMethod.AuthCode, nil
 }
