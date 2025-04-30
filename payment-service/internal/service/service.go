@@ -28,7 +28,7 @@ func NewPaymentService(paymentStore *data.PaymentStore) *PaymentService {
 	}
 }
 
-func (s *PaymentService) AddDriverAccounts(ctx context.Context, driverID string, driverAccounts *models.DriverAccountRequest) (*models.DriverAccountIDs, error) {
+func (s *PaymentService) AddDriverAccount(ctx context.Context, driverID string, driverAccounts *models.SubAccountRequest) (*models.DriverAccountIDs, error) {
 	driver_id, err := primitive.ObjectIDFromHex(driverID)
 	if err != nil {
 		return nil, errors.New("invalid driver id format")
@@ -46,23 +46,8 @@ func (s *PaymentService) AddDriverAccounts(ctx context.Context, driverID string,
 		PercentageCharge:    driverAccounts.PercentageCharge,
 	}
 
-	// Unpack request into Paystack's TransferRecipient type
-	transferRecipientRequest := paystack.TransferRecipient{
-		Type:          "nuban",
-		Name:          driverAccounts.PrimaryContactName,
-		AccountNumber: driverAccounts.AccountNumber,
-		BankCode:      driverAccounts.BankCode,
-		Currency:      "NGN",
-	}
-
 	// Create new SubAccount
 	subAccount, err := s.PaystackClient.SubAccount.Create(&subAccountRequest)
-	if err != nil {
-		return nil, err
-	}
-
-	// Create new TransferRecipient
-	transferRecipient, err := s.PaystackClient.Transfer.CreateRecipient(&transferRecipientRequest)
 	if err != nil {
 		return nil, err
 	}
@@ -71,8 +56,6 @@ func (s *PaymentService) AddDriverAccounts(ctx context.Context, driverID string,
 		DriverID:            driver_id,
 		SubAccountID:        subAccount.ID,
 		SubAccountCode:      subAccount.SubAccountCode,
-		TransferRecipientID: transferRecipient.ID,
-		RecipientCode:       transferRecipient.RecipientCode,
 	}
 	// Store DriverAccountIDs
 	if err := s.AccountStore.StoreDriverAccountIDs(ctx, &DriverAccountIDs); err != nil {
@@ -170,7 +153,7 @@ func (s *PaymentService) ChargeCard(ctx context.Context, chargeRequest *models.C
 	return newPayment, nil
 }
 
-func (s *PaymentService) GetSubAccountIDByDriverID(ctx context.Context, driverID string) (*models.DriverAccountIDs, error) {
+func (s *PaymentService) GetDriverAccountIDsByDriverID(ctx context.Context, driverID string) (*models.DriverAccountIDs, error) {
 	return s.AccountStore.GetDriverAccountIDsByDriverID(ctx, driverID)
 }
 

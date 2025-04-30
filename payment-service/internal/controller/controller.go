@@ -25,11 +25,11 @@ func (pc *PaymentController) AddDriverAccount(c *gin.Context) {
 	if err != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
 	}
-	var DriverAccountRequest models.DriverAccountRequest
+	var DriverAccountRequest models.SubAccountRequest
 	if err := c.ShouldBindJSON(&DriverAccountRequest); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid request"})
 	}
-	DriverAccountIDs, err := pc.PaymentService.AddDriverAccounts(c.Request.Context(), claims.UserID, &DriverAccountRequest)
+	DriverAccountIDs, err := pc.PaymentService.AddDriverAccount(c.Request.Context(), claims.UserID, &DriverAccountRequest)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err})
 	}
