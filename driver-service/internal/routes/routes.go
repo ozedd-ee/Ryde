@@ -10,24 +10,24 @@ import (
 func DriverRoutes(router *gin.Engine, controller *controller.DriverController) {
 	driverGroup := router.Group("api/v1/drivers")
 
-	//Driver signup:   /drivers/signup
-	driverGroup.POST("/signup", controller.CreateDriver)
+	//Driver sign-up:   /drivers/sign-up
+	driverGroup.POST("/sign-up", controller.CreateDriver)
 
 	// Driver login: /drivers/login
 	driverGroup.POST("/login", controller.Login)
 
-	// Add vehicle: /drivers/:id/addvehicle
-	driverGroup.POST("/:id/addvehicle", controller.AddVehicle)
+	// Add vehicle: /drivers/:id/add-vehicle
+	driverGroup.POST("/:id/add-vehicle", controller.AddVehicle)
 
 	// Set driver status to 'available'
-	driverGroup.POST("/set-status-available", controller.SetStatusAvailable)
+	driverGroup.PUT("/set-status-available", controller.SetStatusAvailable)
 
 	// Set driver status to 'offline'
-	driverGroup.POST("/set-status-offline", controller.SetStatusOffline)
+	driverGroup.PUT("/set-status-offline", controller.SetStatusOffline)
 
 	// Get driver: /drivers/:id
 	driverGroup.GET("/:id", controller.GetDriver)
 	
-	//Get driver's vrhicle:  /drivers/:id/vehiches
+	//Get driver's vehicle:  /drivers/:id/vehicles
 	driverGroup.GET("/:id/vehicles", controller.GetVehicle)  
 }
