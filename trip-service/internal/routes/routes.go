@@ -11,7 +11,7 @@ func TripRoutes(router *gin.Engine, controller *controller.TripController) {
 
 	tripGroup.POST("/new-ride", controller.NewRideRequest) // Request a new ride
 
-	tripGroup.POST("/start-trip", controller.StartTrip) // Pick-up rider origin
+	tripGroup.PUT("/start-trip", controller.StartTrip) // Pick-up rider origin
 
 	tripGroup.POST("/end-trip", controller.EndTrip) // Drop-off rider at destination
 

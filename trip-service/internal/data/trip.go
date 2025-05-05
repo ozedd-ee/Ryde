@@ -84,15 +84,6 @@ func (s *TripStore) GetPendingTrip(ctx context.Context, tripKey string) (*models
 }
 
 // ------ Trip database methods ------
-func (s *TripStore) NewTrip(ctx context.Context, trip *models.Trip) (*models.Trip, error) {
-	result, err := s.Collection.InsertOne(ctx, trip)
-	if err != nil {
-		return nil, err
-	}
-	trip.ID = result.InsertedID.(primitive.ObjectID)
-	return trip, nil
-}
-
 func (s *TripStore) GetTripByID(ctx context.Context, tripID string) (*models.Trip, error) {
 	var trip models.Trip
 	id, err := primitive.ObjectIDFromHex(tripID)
@@ -157,7 +148,7 @@ func (s *TripStore) EndTrip(ctx context.Context, tripKey string) (*models.Trip, 
 	trip.StartTime = time.Now()
 
 	// Store trip in database
-	s.NewTrip(ctx, &trip)
+	s.newTrip(ctx, &trip)
 
 	// Publish driver status update for driver service
 	s.publishDriverStatusUpdate(ctx, trip.DriverID.String(), "available")
@@ -168,6 +159,15 @@ func (s *TripStore) EndTrip(ctx context.Context, tripKey string) (*models.Trip, 
 }
 
 // --------- Internal functions ---------
+func (s *TripStore) newTrip(ctx context.Context, trip *models.Trip) (*models.Trip, error) {
+	result, err := s.Collection.InsertOne(ctx, trip)
+	if err != nil {
+		return nil, err
+	}
+	trip.ID = result.InsertedID.(primitive.ObjectID)
+	return trip, nil
+}
+
 func (s *TripStore) publishDriverStatusUpdate(ctx context.Context, driverID, status string) {
 	payload := models.StatusUpdate{
 		DriverID: driverID,
