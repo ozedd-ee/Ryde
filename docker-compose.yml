@@ -35,6 +35,7 @@ services:
       - location-service
       - notification-service
       - trip-service
+      - payment-service
     networks:
       - ryde-network
 
