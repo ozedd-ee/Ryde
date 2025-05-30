@@ -13,7 +13,7 @@ services:
     ports: 
       - "6379:6379"
     networks:
-      - ryde-network
+      - external
 
   mongo:
     image: mongo:latest
@@ -22,7 +22,7 @@ services:
     ports:
       - "27017:27017"
     networks:
-      - ryde-network
+      - external
 
   ryde-root:
     image: alpine
@@ -37,8 +37,14 @@ services:
       - trip-service
       - payment-service
     networks:
-      - ryde-network
+      - internal
+      - external
 
 networks:
-  ryde-network:
-    external: true
+  internal:
+    name: ryde-network-internal
+    internal: true
+    driver: bridge
+  external:
+    name: ryde-network-external
+    driver: bridge

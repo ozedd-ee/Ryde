@@ -8,8 +8,5 @@ services:
       - MONGO_URI=mongodb://mongo:27017/trip_db
       - REDIS_URL=redis://redis:6379
     networks:
-      - ryde-network
-
-networks:
-  ryde-network:
-    external: true
+      - internal
+      - external

@@ -6,17 +6,12 @@ services:
     ports:
       - "1883:1883"
     networks:
-      - ryde-network
+      - internal
+      - external
   notification-service:
     build: 
       context: .
-    ports:
-      - "8083:8083"
     depends_on:
       - mqtt-broker
     networks:
-      - ryde-network
-
-networks:
-  ryde-network:
-    external: true
+      - internal

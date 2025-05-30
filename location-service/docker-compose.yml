@@ -7,8 +7,4 @@ services:
     environment:
       - REDIS_URL=redis://redis:6379
     networks:
-      - ryde-network
-
-networks:
-  ryde-network:
-    external: true
+      - external

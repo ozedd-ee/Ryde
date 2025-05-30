@@ -4,11 +4,6 @@ services:
       context: .
     ports:
       - "8085:8085"
-    environment:
-      - PAYSTACK_SECRET_KEY=sk_test_b748a89ad84f35c2f1a8b81681f956274de048bb
     networks:
-      - ryde-network
-
-networks:
-  ryde-network:
-    external: true
+      - internal
+      - external

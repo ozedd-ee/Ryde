@@ -7,8 +7,4 @@ services:
     environment:
       - MONGO_URI=mongodb://mongo:27017/user_db 
     networks:
-      - ryde-network
-
-networks:
-  ryde-network:
-    external: true
+      - external
