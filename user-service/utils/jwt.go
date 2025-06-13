@@ -13,10 +13,11 @@ var jwtSecret = os.Getenv("USER_SECRET_KEY")
 
 type Claims struct {
 	UserID string `json:"_id"`
+	Email string `json:"email"`
 	jwt.StandardClaims
 }
 
-func GenerateJWT(userID string) (string, error) {
+func GenerateJWT(userID, email string) (string, error) {
 	if jwtSecret == "" {
 		log.Fatal("Secret key not set")
 	}
@@ -24,6 +25,7 @@ func GenerateJWT(userID string) (string, error) {
 
 	claims := &Claims{
 		UserID: userID,
+		Email: email,
 		StandardClaims: jwt.StandardClaims{
 			ExpiresAt: expirationTime.Unix(),
 		},
