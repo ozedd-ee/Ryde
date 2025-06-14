@@ -31,7 +31,8 @@ func (s *TripController) NewRideRequest(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid request"})
 	}
 	riderID := claims.UserID
-	tripBuffer, err := s.TripService.NewRideRequest(c.Request.Context(), riderID, order)
+	email := claims.Email
+	tripBuffer, err := s.TripService.NewRideRequest(c.Request.Context(), riderID, email, order)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 	}
