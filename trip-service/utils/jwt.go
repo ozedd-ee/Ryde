@@ -4,6 +4,7 @@ import (
 	"errors"
 	"log"
 	"os"
+	"time"
 
 	"github.com/golang-jwt/jwt"
 )
@@ -30,4 +31,24 @@ func ValidateJWT(tokenString string) (*Claims, error) {
 	}
 
 	return claims, nil
+}
+
+// To be validated in payment service
+func GeneratePaymentJWT(userID, email string) (string, error) {
+	paymentSecret := os.Getenv("PAYMENT_SECRET")
+	if paymentSecret == "" {
+		log.Fatal("payment shared secret not set")
+	}
+	expirationTime := time.Now().Add(time.Minute * 30)
+
+	claims := &Claims{
+		UserID: userID,
+		Email:  email,
+		StandardClaims: jwt.StandardClaims{
+			ExpiresAt: expirationTime.Unix(),
+		},
+	}
+
+	token := jwt.NewWithClaims(jwt.SigningMethodES256, claims)
+	return token.SignedString(paymentSecret)
 }

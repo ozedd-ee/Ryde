@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"errors"
+	"fmt"
 	"ryde/internal/comms"
 	"ryde/internal/data"
 	"ryde/internal/models"
@@ -19,7 +20,7 @@ func NewTripService(tripStore *data.TripStore) *TripService {
 	}
 }
 
-func (s *TripService) NewRideRequest(ctx context.Context, riderID string, request *models.Order) (*models.TripBuffer, error) {
+func (s *TripService) NewRideRequest(ctx context.Context, riderID, email string, request *models.Order) (*models.TripBuffer, error) {
 	drivers, err := comms.FindNearbyDrivers(request)
 	if err != nil {
 		return nil, err
@@ -41,6 +42,17 @@ func (s *TripService) NewRideRequest(ctx context.Context, riderID string, reques
 				if err != nil {
 					return nil, err
 				}
+				chargeRequest := models.ChargeRequest{
+					Email:  email,
+					RideID: trip.ID.String(),
+					To:     trip.DriverID.String(),
+					Amount: 50000, // Arbitrary number for now
+				}
+				payment, err := comms.SendChargeRequest(riderID, &chargeRequest)
+				if err != nil {
+					return nil, fmt.Errorf("error charging card: %v", err)
+				}
+				fmt.Print(payment.PaymentID)
 				return s.TripStore.CacheTrip(ctx, trip)
 			} else {
 				continue
