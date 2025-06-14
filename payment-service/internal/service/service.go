@@ -140,7 +140,7 @@ func (s *PaymentService) ChargeCard(ctx context.Context, chargeRequest *models.C
 		return nil, err
 	}
 	payment := models.Payment{
-		PaystackID:      tx.ID,
+		TransactionID:      tx.ID,
 		TripID:          tx.Metadata, // Why is Metadata a string?
 		TransactionRef:  tx.Reference,
 		TransactionTime: time.Now(), // Why is tx.CreatedAt a string?

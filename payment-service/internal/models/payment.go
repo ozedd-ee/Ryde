@@ -8,7 +8,7 @@ import (
 
 type Payment struct {
 	PaymentID       primitive.ObjectID `json:"payment_id,omitempty" bson:"payment_id,omitempty"`
-	PaystackID      int                `json:"paystack_id" bson:"paystack_id"`
+	TransactionID      int                `json:"transaction_id" bson:"transaction_id"`
 	TripID          string             `json:"trip_id" bson:"trip_id"`
 	TransactionRef  string             `json:"tx_ref" bson:"tx_ref"`
 	TransactionTime time.Time          `json:"tx_time" bson:"tx_time"`
