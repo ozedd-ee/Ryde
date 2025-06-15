@@ -30,3 +30,20 @@ func ValidateJWT(tokenString string) (*Claims, error) {
 
 	return claims, nil
 }
+
+func ValidateChargeRequest(tokenString string) (*Claims, error) {
+	chargeSecret := os.Getenv("PAYMENT_SECRET") 
+	if chargeSecret == "" {
+		log.Fatal("payment shared secret not set")
+	}
+	claims := &Claims{}
+
+	token, err := jwt.ParseWithClaims(tokenString, claims, func(token *jwt.Token) (any, error) {
+		return chargeSecret, nil
+	})
+	if err != nil || !token.Valid {
+		return nil, errors.New("invalid or expired token")
+	}
+
+	return claims, nil
+}
