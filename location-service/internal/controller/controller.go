@@ -26,6 +26,7 @@ func (s *LocationController) GetDriverLocation(c *gin.Context) {
 	location, err := s.LocationService.GetDriverLocation(c, driver_id)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "driver location not found"})
+		return
 	}
 	c.JSON(http.StatusOK, location)
 }
@@ -39,10 +40,12 @@ func (s *LocationController) FindNearbyDrivers(c *gin.Context) {
 
 	if err := c.ShouldBindJSON(&request); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error":"invalid request"})
+		return
 	}
 	drivers, err := s.LocationService.FindNearbyDrivers(c, request.latitude, request.longitude, request.radius)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "error fetching nearby drivers"})
+		return
 	}
 	c.JSON(http.StatusOK, drivers)
 }

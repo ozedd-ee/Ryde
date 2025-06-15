@@ -23,11 +23,13 @@ func (s *NotificationController) SendRideRequest(c *gin.Context) {
 
 	if err := c.ShouldBindJSON(&rideRequest); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid request"})
+		return
 	}
 
 	response, err := s.NotificationService.SendRideRequest(rideRequest.DriverID, rideRequest.Order)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
 	}
 	c.String(http.StatusOK, "UTF-8", response)
 }

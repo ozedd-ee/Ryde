@@ -24,11 +24,13 @@ func (s *DriverController) CreateDriver(c *gin.Context) {
 	var driver models.Driver
 	if err := c.ShouldBindJSON(&driver); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err})
+		return
 	}
 
 	result, err := s.DriverService.SignUp(c.Request.Context(), &driver)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err})
+		return
 	}
 
 	c.JSON(http.StatusOK, result)
@@ -41,11 +43,13 @@ func (s *DriverController) Login(c *gin.Context) {
 	}
 	if err := c.ShouldBindJSON(&request); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid request"})
+		return
 	}
 
 	token, err := s.DriverService.Login(c.Request.Context(), request.Email, request.Password)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "unable to generate token"})
+		return
 	}
 
 	c.JSON(http.StatusOK, token)
@@ -69,15 +73,18 @@ func (s *DriverController) AddVehicle(c *gin.Context) {
 	claims, err := utils.ValidateJWT(token)
 	if err != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": errors.New("unauthorized")})
+		return
 	}
 
 	var vehicle models.Vehicle
 	if err := c.ShouldBindJSON(&vehicle); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err})
+		return
 	}
 	newVehicle, err := s.DriverService.AddVehicle(c.Request.Context(), claims.UserID, &vehicle)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err})
+		return
 	}
 
 	c.JSON(http.StatusOK, newVehicle)
@@ -102,10 +109,12 @@ func (s *DriverController) SetStatusAvailable(c *gin.Context) {
 	claims, err := utils.ValidateJWT(token)
 	if err != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": errors.New("unauthorized")})
+		return
 	}
 	err = s.DriverService.SetStatusAvailable(c.Request.Context(), claims.UserID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err})
+		return
 	}
 	c.Status(http.StatusOK)
 }
@@ -115,10 +124,12 @@ func (s *DriverController) SetStatusOffline(c *gin.Context) {
 	claims, err := utils.ValidateJWT(token)
 	if err != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": errors.New("unauthorized")})
+		return
 	}
 	err = s.DriverService.SetStatusOffline(c.Request.Context(), claims.UserID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err})
+		return
 	}
 	c.Status(http.StatusOK)
 }

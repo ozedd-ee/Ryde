@@ -49,6 +49,7 @@ func (s *UserController) Login(c *gin.Context) {
     token, err := s.UserService.Login(c.Request.Context(), request.Email, request.Password)
     if err != nil {
         c.JSON(http.StatusUnauthorized, gin.H{"error": "unable to generate token"})
+		return
     }
 
     c.JSON(http.StatusOK, gin.H{"token": token})

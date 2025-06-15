@@ -25,16 +25,19 @@ func (s *TripController) NewRideRequest(c *gin.Context) {
 	claims, err := utils.ValidateJWT(token)
 	if err != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
+		return
 	}
 	var order *models.Order
 	if err = c.ShouldBindJSON(&order); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid request"})
+		return
 	}
 	riderID := claims.UserID
 	email := claims.Email
 	tripBuffer, err := s.TripService.NewRideRequest(c.Request.Context(), riderID, email, order)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
 	}
 	c.JSON(http.StatusOK, gin.H{"tripBuffer": tripBuffer})
 }
@@ -45,6 +48,7 @@ func (s *TripController) StartTrip(c *gin.Context) {
 	claims, err := utils.ValidateJWT(token)
 	if err != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
+		return
 	}
 	driverID := claims.UserID
 
@@ -52,11 +56,13 @@ func (s *TripController) StartTrip(c *gin.Context) {
 	// Verify caller is driver for the trip
 	if !s.callerIsDriver(c.Request.Context(), driverID, tripKey) {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
+		return
 	}
 
 	tripBuffer, err := s.TripService.StartTrip(c.Request.Context(), tripKey)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err})
+		return
 	}
 	c.JSON(http.StatusOK, tripBuffer)
 }
@@ -67,6 +73,7 @@ func (s *TripController) EndTrip(c *gin.Context) {
 	claims, err := utils.ValidateJWT(token)
 	if err != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
+		return
 	}
 	driverID := claims.UserID
 
@@ -74,10 +81,12 @@ func (s *TripController) EndTrip(c *gin.Context) {
 	// Verify caller is driver for the trip
 	if !s.callerIsDriver(c.Request.Context(), driverID, tripKey) {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
+		return
 	}
 	updatedTrip, err := s.TripService.EndTrip(c.Request.Context(), tripKey)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err})
+		return
 	}
 	c.JSON(http.StatusOK, updatedTrip)
 }
@@ -87,6 +96,7 @@ func (s *TripController) GetTripByID(c *gin.Context) {
 	trip, err := s.TripService.GetTripByID(c.Request.Context(), id)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err})
+		return
 	}
 	c.JSON(http.StatusOK, trip)
 }
@@ -97,6 +107,7 @@ func (s *TripController) GetAllDriverTrips(c *gin.Context) {
 	trips, err := s.TripService.GetAllDriverTrips(c.Request.Context(), driverID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err})
+		return
 	}
 	c.JSON(http.StatusOK, trips)
 }
@@ -107,6 +118,7 @@ func (s *TripController) GetAllRiderTrips(c *gin.Context) {
 	trips, err := s.TripService.GetAllRiderTrips(c.Request.Context(), riderID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err})
+		return
 	}
 	c.JSON(http.StatusOK, trips)
 }
@@ -117,6 +129,7 @@ func (s *TripController) GetPendingTrip(c *gin.Context) {
 	trip, err := s.TripService.GetPendingTrip(c.Request.Context(), tripKey)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err})
+		return
 	}
 	c.JSON(http.StatusOK, trip)
 }
